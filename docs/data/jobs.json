@@ -1,10 +1,10 @@
 {
  "meta": {
-  "updated_at": "2026-11-23T23:57:20-03:00",
+  "updated_at": "2026-11-24T18:00:44-03:00",
   "sources": {
    "gupy": {
     "ok": true,
-    "count": 87,
+    "count": 86,
     "error": ""
    },
    "adzuna": {
@@ -19,7 +19,7 @@
    },
    "workday": {
     "ok": true,
-    "count": 148,
+    "count": 150,
     "error": ""
    },
    "greenhouse": {
@@ -39,11 +39,11 @@
    },
    "noticias": {
     "ok": true,
-    "count": 175,
+    "count": 165,
     "error": ""
    }
   },
-  "active": 44
+  "active": 47
  },
  "jobs": [
   {
@@ -64,7 +64,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -92,7 +92,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -121,7 +121,7 @@
     "inglês intermediario"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -149,7 +149,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -177,35 +177,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
-   "active": true,
-   "notified": true,
-   "tipo": "vaga",
-   "area": "dev",
-   "english": "",
-   "abroad": false,
-   "salary": 0,
-   "grande": false
-  },
-  {
-   "id": "gupy:12785519",
-   "source": "gupy",
-   "title": "Pessoa Desenvolvedora FullStack (NodeJS / Angular / Java) - Junior (Remoto)",
-   "company": "Viceri SEIDOR",
-   "url": "https://viceri-vagas.gupy.io/job/eyJqb2JJZCI6MTI3ODU1MTksInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
-   "location": "",
-   "uf": "",
-   "workplace": "remoto",
-   "posted_at": "2026-10-27",
-   "snippet": "Quem somos!Tornamos as pessoas melhores através da tecnologia.As novas tecnologias estão transformando o nosso mundo. As nossas expectativas estão se redefinindo, mudando a maneira como vivemos e trabalhamos.A transformação digital vem com um imenso potencial para mudar as nossas vidas, criar valor para os negócios e trazer benefícios sociais muito mais amplos.É tempo de rever conceitos, investir…",
-   "score": 80,
-   "reasons": [
-    "termo de dev no título",
-    "júnior no título",
-    "remoto"
-   ],
-   "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -234,7 +206,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -263,7 +235,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -292,7 +264,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -377,7 +349,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -417,34 +389,6 @@
    "grande": true
   },
   {
-   "id": "gupy:12848395",
-   "source": "gupy",
-   "title": "ANALISTA DE DADOS JUNIOR",
-   "company": "Oportunidades",
-   "url": "https://bancorbras.gupy.io/job/eyJqb2JJZCI6MTI4NDgzOTUsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
-   "location": "",
-   "uf": "",
-   "workplace": "remoto",
-   "posted_at": "2026-11-06",
-   "snippet": "Estamos em busca de um profissional para reforçar nosso time!No Grupo Bancorbrás, cada ideia é bem-vinda, e valorizamos pessoas proativas, criativas e protagonistas, movidas pela centralidade no cliente, excelência, transparência e diversidade.Se você gosta de trabalhar em um ambiente colaborativo, diverso e inovador, venha contribuir com nossa equipe e fazer a diferença!Faça parte de uma empresa…",
-   "score": 70,
-   "reasons": [
-    "área correlata no título",
-    "júnior no título",
-    "remoto"
-   ],
-   "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
-   "active": true,
-   "notified": true,
-   "tipo": "vaga",
-   "area": "correlata",
-   "english": "",
-   "abroad": false,
-   "salary": 0,
-   "grande": false
-  },
-  {
    "id": "gupy:12920492",
    "source": "gupy",
    "title": "Analista de Testes e QA Júnior - Exclusiva PCD",
@@ -462,7 +406,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -490,7 +434,7 @@
     "trainee/júnior"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -499,6 +443,34 @@
    "abroad": false,
    "salary": 0,
    "grande": false
+  },
+  {
+   "id": "noticias:a8be679972e2aa",
+   "source": "noticias",
+   "title": "Até amanhã! iFood abre seleção nacional para estudantes e recém-formados com bolsas de até R$ 7 mil em programa de Inteligência Artificial",
+   "company": "iFood",
+   "url": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxQTGdpWTk5dTJmelphSHhvSmF3V0FFdF9YQ3B3d2cwakpkWEpNRllzaDBkak1vbm5ZRkFfblM0TEpoa0NsT0lxbF9uc0JrOG5zbmlSZV9vUjJZM3FrUEhQb3puYnp2bFVoUS1KdXBNU0ROOG40VHBoTGpoSV81ejlqbk1kd1czU0pCOV9FUVhhWHNLMW1uRUNpQXQwSE9CMXpEVG04ckpmNm9rbGZadTVYem55czFLQUlReFZ1bkJmYXE1VXhlWjRNTVdUakM0S0dvdTBkeHpZU2toNjVadTU0RUhNZXBqRE1SWHBJWnlQNW5pQTB4eFB0eUx0cmhVdw?oc=5",
+   "location": "via TVUAI",
+   "uf": "",
+   "workplace": "",
+   "posted_at": "2026-11-16",
+   "snippet": "",
+   "score": 65,
+   "reasons": [
+    "anúncio de seleção",
+    "tecnologia",
+    "grande empresa"
+   ],
+   "first_seen": "2026-11-24",
+   "last_seen": "2026-11-24",
+   "active": true,
+   "notified": true,
+   "tipo": "noticia",
+   "area": "correlata",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": true
   },
   {
    "id": "noticias:a6a7738e675f16",
@@ -529,6 +501,118 @@
    "grande": true
   },
   {
+   "id": "noticias:c770bbd3569896",
+   "source": "noticias",
+   "title": "IMPA Tech oferece 50 vagas para Bacharelado em Matemática da Tecnologia e Inovação em Teresina; saiba como se inscrever",
+   "company": "Empresa não identificada",
+   "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxOT2JGZUZ4ZlZUNUY2TEw0YXB0VW9EcEl4R0ltQ1ZBVjVQV1IyUUFGd3FMWGNEbEpjZ1lXSlRQSURicXQ3QkVkX0RCTEVibmFxRkpFQVlOc0gzZGFiQ1dUOVVNdTVXRXkzWHltZHQ0eVF4MThyZ0wzcW1MV290ZlRIbTZTTGYzZWVNMUdaNVJ0Wm1uWnRuT1dJMFZZNEh5UnNpQ3FTTVRSTW9QX2ZLdzVuUF9hRkNWVEc1Sy01MjBiUXVDT0pCNlhvbkRKZE9zbTMwel9IMklpQU05UlJHRFlITnYwekt1THp4RktqYg?oc=5",
+   "location": "via REDE BRASIL DE TELEVISÃO",
+   "uf": "",
+   "workplace": "",
+   "posted_at": "2026-11-24",
+   "snippet": "",
+   "score": 50,
+   "reasons": [
+    "anúncio de seleção",
+    "tecnologia",
+    "recente"
+   ],
+   "first_seen": "2026-11-24",
+   "last_seen": "2026-11-24",
+   "active": true,
+   "notified": true,
+   "tipo": "noticia",
+   "area": "dev",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": false
+  },
+  {
+   "id": "noticias:b9f4b84b90cf35",
+   "source": "noticias",
+   "title": "O Instituto Federal de Educação, Ciência e Tecnologia de Rondônia (IFRO), no Campus Cacoal, abriu as inscrições do Processo Seletivo Unificado (PSU) 2027/1, com 200 vagas distribuídas em cinco cursos de graduação. 👉🏻 Esse texto é uma prévia, para t",
+   "company": "Empresa não identificada",
+   "url": "https://news.google.com/rss/articles/CBMiUkFVX3lxTE5wYXN4bnNVYWJhUGNvZ200M1c5bU1laHVYS3hQSkVLa3QxWXNoRFdKMEs5QWdsaDlCU2dEZUQ0cmlTMnJPeFRrNTlIWjdvSVdsSmc?oc=5",
+   "location": "via Instagram",
+   "uf": "",
+   "workplace": "",
+   "posted_at": "2026-11-24",
+   "snippet": "",
+   "score": 50,
+   "reasons": [
+    "anúncio de seleção",
+    "tecnologia",
+    "recente"
+   ],
+   "first_seen": "2026-11-24",
+   "last_seen": "2026-11-24",
+   "active": true,
+   "notified": true,
+   "tipo": "noticia",
+   "area": "dev",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": false
+  },
+  {
+   "id": "noticias:349fa6abb671bc",
+   "source": "noticias",
+   "title": "Tecnologia: Curso gratuito de programação abre 20 vagas em Rio do Sul com chance de contratação",
+   "company": "Empresa não identificada",
+   "url": "https://news.google.com/rss/articles/CBMiugFBVV95cUxNWUdlVm5ZVlVfVTl1eWRDZkJ5TnR4RDJfdWRKMHpJc3RON3d4NWtTVXpNazl5Q0NTTUhrTHEwWTNWTGJ5dnVxU3p2X183bGRZVFgwS3pfbmJZdlF1NFY0MFlpQ2xtMThIWnNtV3A3Z3dvMWlmZVlQWUE0RkdHVmJSZE5NY09vVFllMV8yY1k5Q3d3UTRFbmlUcjUyNm1vbXdXM2ZYTWNmVFJqZ3hubkhTNmhWTmRyaTVYbkE?oc=5",
+   "location": "via RBA TV",
+   "uf": "",
+   "workplace": "",
+   "posted_at": "2026-11-24",
+   "snippet": "",
+   "score": 50,
+   "reasons": [
+    "anúncio de seleção",
+    "tecnologia",
+    "recente"
+   ],
+   "first_seen": "2026-11-24",
+   "last_seen": "2026-11-24",
+   "active": true,
+   "notified": true,
+   "tipo": "noticia",
+   "area": "dev",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": false
+  },
+  {
+   "id": "noticias:b5e0bcce58cc5f",
+   "source": "noticias",
+   "title": "IMPA Tech oferece 50 vagas para o Curso de Bacharelado em Matemática da Tecnologia e Inovação em Teresina; saiba como se inscrever",
+   "company": "Empresa não identificada",
+   "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxQcFE4cUJSYU5ndmE1b2kzMWYxdWloaXVJaFVHem5OMTJJN0tqOEtBMUp6SWFPUHZEZThxZEdjMmJMVVBVaVN2VU1hUEhleHZOVXJBeGdhMkt4dlZUbXhwMThpVWVlOGduM0N5YmR3YzNaWWJybl93Ykh6RkRkVXp5Sm9UXzZlMVdGdk1vVkktdFlLVXJzVXZ0TjFjUWllaTdTMVJac2E5d1NEeWJNcmZtUFU1MUZzNDlPQUJrSERQU0hwQnpZOTRkUnBKQS1Hb2xYQndWYlYwQnd1eXFJQ3pPQ3g1bUpvd3hMMENTcGRHbmpCLVB0MVE?oc=5",
+   "location": "via REDE BRASIL DE TELEVISÃO",
+   "uf": "",
+   "workplace": "",
+   "posted_at": "2026-11-24",
+   "snippet": "",
+   "score": 50,
+   "reasons": [
+    "anúncio de seleção",
+    "tecnologia",
+    "recente"
+   ],
+   "first_seen": "2026-11-24",
+   "last_seen": "2026-11-24",
+   "active": true,
+   "notified": true,
+   "tipo": "noticia",
+   "area": "dev",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": false
+  },
+  {
    "id": "noticias:30f874d7bd16bd",
    "source": "noticias",
    "title": "3 cursos de tecnologia EaD da UNICENTRO abrem 380 vagas",
@@ -546,7 +630,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -574,7 +658,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -602,7 +686,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -630,7 +714,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -713,7 +797,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -740,7 +824,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -767,7 +851,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -794,7 +878,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -821,7 +905,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -848,7 +932,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -902,7 +986,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -929,7 +1013,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -956,7 +1040,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -983,7 +1067,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1037,7 +1121,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1064,7 +1148,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1091,7 +1175,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1118,7 +1202,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1145,7 +1229,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1253,7 +1337,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-23",
+   "last_seen": "2026-11-24",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1285,6 +1369,34 @@
    "last_seen": "2026-11-23",
    "active": false,
    "notified": false,
+   "tipo": "vaga",
+   "area": "dev",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": false
+  },
+  {
+   "id": "gupy:12785519",
+   "source": "gupy",
+   "title": "Pessoa Desenvolvedora FullStack (NodeJS / Angular / Java) - Junior (Remoto)",
+   "company": "Viceri SEIDOR",
+   "url": "https://viceri-vagas.gupy.io/job/eyJqb2JJZCI6MTI3ODU1MTksInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+   "location": "",
+   "uf": "",
+   "workplace": "remoto",
+   "posted_at": "2026-10-27",
+   "snippet": "Quem somos!Tornamos as pessoas melhores através da tecnologia.As novas tecnologias estão transformando o nosso mundo. As nossas expectativas estão se redefinindo, mudando a maneira como vivemos e trabalhamos.A transformação digital vem com um imenso potencial para mudar as nossas vidas, criar valor para os negócios e trazer benefícios sociais muito mais amplos.É tempo de rever conceitos, investir…",
+   "score": 80,
+   "reasons": [
+    "termo de dev no título",
+    "júnior no título",
+    "remoto"
+   ],
+   "first_seen": "2026-11-23",
+   "last_seen": "2026-11-23",
+   "active": false,
+   "notified": true,
    "tipo": "vaga",
    "area": "dev",
    "english": "",
@@ -1429,6 +1541,34 @@
    "notified": false,
    "tipo": "vaga",
    "area": "dev",
+   "english": "",
+   "abroad": false,
+   "salary": 0,
+   "grande": false
+  },
+  {
+   "id": "gupy:12848395",
+   "source": "gupy",
+   "title": "ANALISTA DE DADOS JUNIOR",
+   "company": "Oportunidades",
+   "url": "https://bancorbras.gupy.io/job/eyJqb2JJZCI6MTI4NDgzOTUsInNvdXJjZSI6Imd1cHlfcG9ydGFsIn0=?jobBoardSource=gupy_portal",
+   "location": "",
+   "uf": "",
+   "workplace": "remoto",
+   "posted_at": "2026-11-06",
+   "snippet": "Estamos em busca de um profissional para reforçar nosso time!No Grupo Bancorbrás, cada ideia é bem-vinda, e valorizamos pessoas proativas, criativas e protagonistas, movidas pela centralidade no cliente, excelência, transparência e diversidade.Se você gosta de trabalhar em um ambiente colaborativo, diverso e inovador, venha contribuir com nossa equipe e fazer a diferença!Faça parte de uma empresa…",
+   "score": 70,
+   "reasons": [
+    "área correlata no título",
+    "júnior no título",
+    "remoto"
+   ],
+   "first_seen": "2026-11-23",
+   "last_seen": "2026-11-23",
+   "active": false,
+   "notified": true,
+   "tipo": "vaga",
+   "area": "correlata",
    "english": "",
    "abroad": false,
    "salary": 0,
