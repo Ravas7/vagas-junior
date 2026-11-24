@@ -1,6 +1,6 @@
 {
  "meta": {
-  "updated_at": "2026-11-23T23:46:53-03:00",
+  "updated_at": "2026-11-23T23:57:20-03:00",
   "sources": {
    "gupy": {
     "ok": true,
@@ -8,9 +8,9 @@
     "error": ""
    },
    "adzuna": {
-    "ok": true,
-    "count": 2,
-    "error": ""
+    "ok": null,
+    "count": 0,
+    "error": "defina ADZUNA_APP_ID e ADZUNA_APP_KEY para usar o Adzuna"
    },
    "smartrecruiters": {
     "ok": true,
@@ -39,7 +39,7 @@
    },
    "noticias": {
     "ok": true,
-    "count": 152,
+    "count": 175,
     "error": ""
    }
   },
