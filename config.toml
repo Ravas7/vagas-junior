@@ -1,0 +1,151 @@
+# Configuração do radar de vagas júnior.
+# Segredos (senha de e-mail, chaves de API) NÃO ficam aqui: use variáveis de
+# ambiente / Secrets do GitHub (veja o README).
+
+timezone = "America/Sao_Paulo"
+
+[storage]
+path = "docs/data/jobs.json"      # o painel lê este mesmo arquivo
+
+[email]
+enabled = true
+max_per_email = 40                # vagas por e-mail; o restante aparece só no painel
+max_news_per_email = 10           # notícias de processo seletivo por e-mail
+min_score = 40                    # suba (ex.: 60) para receber só as melhores
+send_when_empty = false           # true = avisa até quando não há vagas novas
+subject_prefix = "Vagas júnior"
+# dashboard_url = "https://SEU_USUARIO.github.io/vagas-junior/"   # no GitHub Actions é montado sozinho
+
+[filter]
+max_age_days = 45
+min_score = 40
+max_years = 2                     # pedir mais que isso (sem "júnior" no título) descarta
+include_estagio = false           # true = estágio também entra
+# Só vagas remotas (do Brasil) ou em Salvador e região metropolitana.
+location_filter = true
+allow_remote = true
+remote_abroad = true              # remoto de empresa/país de fora também entra
+# Nível máximo de inglês exigido: "basico", "intermediario" (B1/B2) ou "qualquer".
+# Vaga que pede inglês avançado/fluente/C1/C2 é descartada; sem informação, entra.
+max_english = "intermediario"
+allowed_cities = [
+  "Salvador", "Lauro de Freitas", "Camaçari", "Simões Filho", "Candeias", "Dias d'Ávila",
+  "São Francisco do Conde", "Madre de Deus", "Mata de São João", "Vera Cruz", "Itaparica",
+  "Pojuca", "São Sebastião do Passé", "SSA",
+]
+unknown_location = "descartar"    # "incluir" = mantém vagas presenciais sem local informado
+preferred_states = []             # opcional, ex.: ["BA"]: +10 de nota
+remote_bonus = 10
+keep_days = 45                    # vaga não vista há tanto tempo sai do arquivo
+keep_days_news = 30               # notícias saem mais cedo
+news_min_score = 40
+big_bonus = 10                    # +10 de nota para empresas grandes e multinacionais
+related_enabled = true            # inclui dados, QA, DevOps, segurança... (exige "júnior" no título)
+exclude_companies = []
+exclude_title_terms = []          # ex.: ["suporte", "sap"]
+dev_terms_extra = []              # ex.: ["abap"]
+related_terms_extra = []
+# Suporte técnico entra SÓ se a vaga informar salário igual ou acima do mínimo.
+support_enabled = true
+support_min_salary = 3200         # em R$ por mês; vale para N1, N2, service desk...
+support_unknown_salary = "descartar"   # "incluir" = também mostra suporte sem salário informado
+support_terms_extra = []
+junior_terms_extra = []
+big_companies_extra = []          # empresas que você quer tratar como "grande", ex.: ["Sicredi"]
+news_exclude_extra = []           # palavras que descartam notícias
+
+# ---------------------------------------------------------------- fontes
+
+[sources.gupy]
+enabled = true
+# Endereço que o portal da Gupy usa hoje; não é API documentada. Se falhar,
+# veja o README (passo 6) para copiar a URL certa pelo navegador.
+url = "https://portal.gupy.io/api/job-search/jobs"
+term_param = "jobName"
+limit_param = "limit"
+offset_param = "offset"
+limit = 50
+pages = 2
+# Para trazer mais vagas de Salvador e remotas, descubra no DevTools os nomes dos
+# parâmetros de estado/cidade e de modalidade (README, passo 6) e liste aqui, por exemplo:
+variants = [ { state = "Bahia" }, { workplaceType = "remote" } ]
+terms = [
+  "desenvolvedor junior",
+  "desenvolvedor jr",
+  "programador junior",
+  "engenheiro de software junior",
+  "analista de sistemas junior",
+  "desenvolvedor python",
+  "desenvolvedor java",
+  "desenvolvedor front-end",
+  "desenvolvedor back-end",
+  # áreas correlatas e programas de grandes empresas
+  "trainee tecnologia",
+  "jovem talento tecnologia",
+  "analista de dados junior",
+  "engenheiro de dados junior",
+  "qa junior",
+  "devops junior",
+  "seguranca da informacao junior",
+]
+
+[sources.adzuna]
+enabled = true                    # só roda se ADZUNA_APP_ID e ADZUNA_APP_KEY existirem
+country = "br"
+max_days_old = 14
+pages = 1
+terms = ["desenvolvedor junior", "programador junior"]
+wheres = ["Salvador", ""]         # "Salvador" (raio abaixo) e "" = país todo, só remoto
+distance_km = 50                  # raio em volta de Salvador (pega Lauro de Freitas, Camaçari...)
+
+[sources.greenhouse]
+enabled = true
+# Slug = final do endereço boards.greenhouse.io/<slug>
+companies = []
+location_keywords = ["brasil", "brazil", "remote", "remoto", "latam"]
+
+[sources.lever]
+enabled = true
+# Slug = final do endereço jobs.lever.co/<slug>
+companies = []
+location_keywords = ["brasil", "brazil", "remote", "remoto", "latam"]
+
+# --- empresas grandes e multinacionais --------------------------------------
+
+[sources.smartrecruiters]
+enabled = true
+# Identificador = final do endereço jobs.smartrecruiters.com/<Identificador>
+# (diferencia maiúsculas de minúsculas). country = "br" traz só vagas no Brasil.
+companies = ["BoschGroup", "Visa"]
+country = "br"
+
+[sources.workday]
+enabled = true
+# Endereço do site de carreiras (termina no nome do site, sem /job/...).
+# Busca "junior", "trainee" etc. no servidor e só guarda vagas com Brasil ou remoto.
+sites = [
+  "https://accenture.wd103.myworkdayjobs.com/AccentureCareers",
+  "https://salesforce.wd12.myworkdayjobs.com/External_Career_Site",
+  "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite",
+  "https://adobe.wd5.myworkdayjobs.com/external_experienced",
+]
+terms = ["junior", "trainee", "desenvolvedor", "entry level"]
+location_keywords = ["brazil", "brasil", "remote", "remoto"]
+keep_multi_location = false       # vagas "2 Locations" são descartadas (podem não ser no Brasil)
+pages = 2
+
+[sources.ashby]
+enabled = true
+# Nome do quadro = final do endereço jobs.ashbyhq.com/<nome>
+companies = []
+location_keywords = ["brasil", "brazil", "remote", "remoto", "latam"]
+
+# --- notícias de processos seletivos -------------------------------------------
+
+[sources.noticias]
+enabled = true
+when = "21d"                      # janela de busca no Google Notícias
+max_age_days = 30
+company_queries = true            # também busca por nome das grandes empresas
+group_size = 8                    # empresas por busca
+# queries = [...]                 # descomente para trocar as buscas padrão
