@@ -9,6 +9,8 @@
   };
   const EN = { "": "Inglês não informado", basico: "Inglês básico", intermediario: "Inglês intermediário", avancado: "Inglês avançado" };
   const STORE = "vagas-junior:status:v1";
+  const C = window.Candidaturas;
+  const store = C.createStore({ storage: (() => { try { return window.localStorage; } catch { return null; } })() });
   const DAY = 86400000;
 
   const $ = (sel) => document.querySelector(sel);
@@ -16,7 +18,7 @@
 
   const state = {
     jobs: [], meta: {}, sample: false, now: new Date(),
-    status: readStatus(),            // id -> "saved" | "applied" | "hidden"
+    status: readStatus(),            // id -> "saved" | "hidden" (candidaturas ficam em store.js)
     tab: "all", day: null,
   };
 
@@ -110,7 +112,6 @@
     if (!f.hidden && st === "hidden") return false;
     if (!ignoreTab) {
       if (state.tab === "saved" && st !== "saved") return false;
-      if (state.tab === "applied" && st !== "applied") return false;
     }
     if (f.wp.length && !f.wp.includes(job.workplace || "")) return false;
     if (f.uf && job.uf !== f.uf) return false;
@@ -154,6 +155,7 @@
 
   function jobRow(job) {
     const st = state.status[job.id] || "";
+    const app = store.get(job.id);
     const set = (value) => () => {
       state.status[job.id] = state.status[job.id] === value ? "" : value;
       if (!state.status[job.id]) delete state.status[job.id];
@@ -167,7 +169,7 @@
     const why = (job.reasons || []).slice(1).join(", ");
 
     return h("article", {
-      class: ["job", isNews && "is-news", isNew(job) && "is-new", st === "saved" && "is-saved", st === "applied" && "is-applied", !job.active && "is-closed"]
+      class: ["job", isNews && "is-news", isNew(job) && "is-new", st === "saved" && "is-saved", app && "is-applied", !job.active && "is-closed"]
         .filter(Boolean).join(" "),
     },
       h("div", {},
@@ -185,7 +187,7 @@
           !job.abroad && job.english && h("span", { class: "tag plain" }, EN[job.english]),
           job.salary > 0 && h("span", { class: "tag money" }, "R$ " + job.salary.toLocaleString("pt-BR")),
           !job.active && !isNews && h("span", { class: "tag plain" }, "Encerrada"),
-          st === "applied" && h("span", { class: "tag" }, "Candidatura enviada"),
+          app && h("span", { class: "tag" }, "Candidatura: " + C.stageName(app.stage)),
           !isNews && job.workplace && h("span", { class: "tag" }, WP[job.workplace]),
           !isNews && h("span", { class: "tag plain" }, SRC[job.source] || job.source),
           h("span", { class: "pips", role: "img", "aria-label": `Relevância ${n} de 5`, title: `Relevância ${n} de 5` },
@@ -195,7 +197,8 @@
         h("span", { class: "age" }, ageLabel(job)),
         h("div", { class: "actions" },
           h("button", { class: "btn", type: "button", "aria-pressed": String(st === "saved"), onclick: set("saved") }, st === "saved" ? "Salva" : "Salvar"),
-          !isNews && h("button", { class: "btn", type: "button", "aria-pressed": String(st === "applied"), onclick: set("applied") }, st === "applied" ? "Candidatei-me" : "Marcar candidatura"),
+          !isNews && h("button", { class: "btn", type: "button", "aria-pressed": String(!!app), onclick: () => (app ? showTab("applied") : applyTo(job)) },
+            app ? "Ver no quadro" : "Marcar candidatura"),
           h("button", { class: "btn quiet", type: "button", onclick: set("hidden") }, st === "hidden" ? "Mostrar de novo" : "Ocultar"))),
       (job.snippet || why) && h("details", { class: "more" },
         h("summary", {}, "Ver resumo"),
@@ -214,7 +217,7 @@
     const base = state.jobs.filter((j) => matches(j, f, true));
     $("#count-all").textContent = base.length;
     $("#count-saved").textContent = base.filter((j) => state.status[j.id] === "saved").length;
-    $("#count-applied").textContent = base.filter((j) => state.status[j.id] === "applied").length;
+    countApplied();
 
     const box = $("#list");
     box.replaceChildren();
@@ -229,7 +232,7 @@
         h("h3", {}, nothingYet ? "Ainda não há vagas aqui" : "Nenhuma vaga com esses filtros"),
         h("p", {}, nothingYet
           ? "A primeira coleta ainda não rodou. Execute o fluxo “Buscar vagas” no GitHub Actions ou rode o comando abaixo no seu computador."
-          : state.tab === "all" ? "Remova algum filtro ou escolha outro dia na faixa de cima." : "Use Salvar ou Marcar candidatura nas vagas para listá-las aqui."),
+          : state.tab === "all" ? "Remova algum filtro ou escolha outro dia na faixa de cima." : "Use Salvar nas vagas para listá-las aqui."),
         nothingYet && h("code", {}, "python -m vagas run")));
     } else {
       box.append(...list.map(jobRow));
@@ -258,7 +261,7 @@
     const foot = $("#foot");
     foot.replaceChildren(
       "Vagas coletadas automaticamente de fontes públicas. Confira a vaga no site de origem antes de se candidatar. ",
-      "Suas marcações ficam salvas só neste navegador.",
+      "Vagas salvas e ocultadas ficam só neste navegador. As candidaturas ficam no quadro e podem sincronizar entre aparelhos.",
       ...failed.map(([name, s]) => h("p", { class: "warn" },
         `A fonte ${SRC[name] || name} falhou na última coleta: ${s.error}`)));
   }
@@ -268,11 +271,7 @@
     ["#q", "#uf", "#source", "#sort", "#tipo", "#area", "#local", "#only-big", "#only-new", "#show-closed", "#show-hidden"].forEach((s) =>
       $(s).addEventListener(s === "#q" ? "input" : "change", render));
     $$('input[name="wp"]').forEach((i) => i.addEventListener("change", render));
-    $$(".tabs button").forEach((b) => b.addEventListener("click", () => {
-      state.tab = b.dataset.tab;
-      $$(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
-      render();
-    }));
+    $$(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $("#reset").addEventListener("click", () => {
       $("#q").value = ""; $("#uf").value = ""; $("#source").value = ""; $("#sort").value = "score";
       $("#tipo").value = ""; $("#area").value = ""; $("#local").value = "";
@@ -284,5 +283,33 @@
       toggle.setAttribute("aria-expanded", String(toggle.getAttribute("aria-expanded") !== "true")));
   }
 
-  load().then(() => { fillSelects(); bind(); renderHeader(); renderPulse(); render(); });
+  /* ---------- candidaturas (quadro) ---------- */
+  const countApplied = () => { $("#count-applied").textContent = store.all().filter((a) => a.stage !== "encerrada").length; };
+
+  function applyTo(job) {
+    store.add({ id: job.id, title: job.title, company: job.company, url: job.url, location: job.location,
+      workplace: job.workplace, grande: job.grande, stage: "inscricao" });
+  }
+
+  function showTab(tab) {
+    state.tab = tab;
+    $$(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === tab)));
+    const board = tab === "applied";
+    $("#board").hidden = !board;
+    $("#list").hidden = board;
+    $("#summary").hidden = board;
+    $(".layout").classList.toggle("board-mode", board);
+    if (!board) render();
+    window.scrollTo({ top: 0 });
+  }
+
+  load().then(() => {
+    state.status = store.migrateLegacy(state.status, Object.fromEntries(state.jobs.map((j) => [j.id, j])));
+    writeStatus();
+    fillSelects(); bind(); renderHeader(); renderPulse(); render();
+    window.Kanban.mount({ root: $("#board"), store, sync: window.Sync });
+    store.subscribe(() => { countApplied(); if (state.tab !== "applied") render(); });
+    window.Sync.init(store);
+    countApplied();
+  });
 })();

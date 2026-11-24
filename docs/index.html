@@ -107,12 +107,17 @@
         <button role="tab" id="tab-saved" data-tab="saved" aria-selected="false">Salvas <span class="count" id="count-saved">0</span></button>
         <button role="tab" id="tab-applied" data-tab="applied" aria-selected="false">Candidaturas <span class="count" id="count-applied">0</span></button>
       </div>
+      <section id="board" class="kb" aria-label="Candidaturas" hidden></section>
       <p class="summary" id="summary" aria-live="polite"></p>
       <div id="list" class="list"></div>
       <footer class="foot" id="foot"></footer>
     </main>
   </div>
 
+  <script src="firebase-config.js"></script>
+  <script src="store.js"></script>
+  <script src="sync.js"></script>
+  <script src="kanban.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

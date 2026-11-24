@@ -346,3 +346,19 @@ def test_limite_de_ingles():
 def test_apply_grava_ingles_e_exterior():
     j = com_local(location="Remote - Germany", workplace="remoto", description="B2 English")
     assert filters.apply(j, LOC) and j.english == "intermediario" and j.abroad
+
+
+def test_vaga_publicada_ha_muito_tempo_e_descartada():
+    from datetime import datetime, timedelta, timezone
+    velha = job("Desenvolvedor Júnior", workplace="remoto")
+    velha.posted_at = (datetime.now(timezone.utc) - timedelta(days=929)).isoformat()
+    res = filters.evaluate(velha, {"max_age_days": 45})
+    assert not res.accepted and "929" in res.reasons[0]
+
+    recente = job("Desenvolvedor Júnior", workplace="remoto")
+    recente.posted_at = (datetime.now(timezone.utc) - timedelta(days=5)).isoformat()
+    assert filters.evaluate(recente, {"max_age_days": 45}).accepted
+
+    sem_data = job("Desenvolvedor Júnior", workplace="remoto")
+    assert filters.evaluate(sem_data, {"max_age_days": 45}).accepted
+    assert filters.evaluate(velha, {"max_age_days": 0}).accepted

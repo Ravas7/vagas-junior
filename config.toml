@@ -17,7 +17,6 @@ subject_prefix = "Vagas júnior"
 # dashboard_url = "https://SEU_USUARIO.github.io/vagas-junior/"   # no GitHub Actions é montado sozinho
 
 [filter]
-max_age_days = 45
 min_score = 40
 max_years = 2                     # pedir mais que isso (sem "júnior" no título) descarta
 include_estagio = false           # true = estágio também entra
@@ -36,6 +35,7 @@ allowed_cities = [
 unknown_location = "descartar"    # "incluir" = mantém vagas presenciais sem local informado
 preferred_states = []             # opcional, ex.: ["BA"]: +10 de nota
 remote_bonus = 10
+max_age_days = 45                 # vaga publicada há mais tempo que isso é descartada (0 = sem limite)
 keep_days = 45                    # vaga não vista há tanto tempo sai do arquivo
 keep_days_news = 30               # notícias saem mais cedo
 news_min_score = 40
@@ -58,16 +58,17 @@ news_exclude_extra = []           # palavras que descartam notícias
 
 [sources.gupy]
 enabled = true
-# Endereço que o portal da Gupy usa hoje; não é API documentada. Se falhar,
-# veja o README (passo 6) para copiar a URL certa pelo navegador.
+# Endereço que o portal da Gupy usa hoje (os antigos portal.api.gupy.io e
+# employability-portal.gupy.io saíram do ar em out/2026). Não é API documentada.
+# Se falhar de novo, veja o README (passo 6) para copiar a URL certa pelo navegador.
 url = "https://portal.gupy.io/api/job-search/jobs"
 term_param = "jobName"
 limit_param = "limit"
 offset_param = "offset"
 limit = 50
 pages = 2
-# Para trazer mais vagas de Salvador e remotas, descubra no DevTools os nomes dos
-# parâmetros de estado/cidade e de modalidade (README, passo 6) e liste aqui, por exemplo:
+# Duas passadas por termo: só Bahia e só remotas (a Gupy lê "state" com o nome
+# completo do estado e "workplaceType" com remote/hybrid/on-site).
 variants = [ { state = "Bahia" }, { workplaceType = "remote" } ]
 terms = [
   "desenvolvedor junior",
@@ -93,8 +94,8 @@ terms = [
 enabled = true                    # só roda se ADZUNA_APP_ID e ADZUNA_APP_KEY existirem
 country = "br"
 max_days_old = 14
-pages = 1
-terms = ["desenvolvedor junior", "programador junior"]
+pages = 2
+terms = ["desenvolvedor junior", "programador junior", "desenvolvedor jr", "analista de dados junior", "qa junior", "devops junior", "trainee tecnologia"]
 wheres = ["Salvador", ""]         # "Salvador" (raio abaixo) e "" = país todo, só remoto
 distance_km = 50                  # raio em volta de Salvador (pega Lauro de Freitas, Camaçari...)
 

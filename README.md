@@ -47,7 +47,10 @@ vagas/               o coletor (Python 3.11+, sem dependências externas)
   emailer.py         monta e envia o e-mail
   runner.py          orquestra tudo e traz os comandos run / check
 docs/                o painel (HTML + CSS + JS puro) e os dados
-tests/               127 testes, todos offline
+  store.js           regras do quadro de candidaturas (etapas, encerrar, mesclar)
+  kanban.js          tela do quadro (arrastar, menu, janela no celular)
+  sync.js            sincronização opcional com o Firebase
+tests/               128 testes em Python e 18 em JS, todos offline
 .github/workflows/   agendamento
 ```
 
@@ -57,6 +60,7 @@ tests/               127 testes, todos offline
 
 ```bash
 python -m pytest -q            # opcional: pip install pytest
+node --test tests/store.test.js  # opcional: testes do quadro (Node 20+)
 python -m vagas check          # testa as fontes e o filtro, não salva nada
 python -m vagas run --no-email # coleta, salva e gera out/email_preview.html
 ```
@@ -101,7 +105,7 @@ A lista de grandes empresas está em `BIG_COMPANIES` (`vagas/filters.py`); acres
 
 ### 6. Se a Gupy não trouxer vagas
 
-A Gupy **não tem API pública documentada**: o coletor usa o endereço que o próprio portal chama hoje, e esse endereço já mudou antes. Se `python -m vagas check --source gupy` mostrar erro ou 0 vagas:
+A Gupy **não tem API pública documentada**: o coletor usa o endereço que o próprio portal chama hoje, e esse endereço já mudou duas vezes (os endereços `employability-portal.gupy.io` e `portal.api.gupy.io` saíram do ar; hoje é `portal.gupy.io/api/job-search/jobs`). Se `python -m vagas check --source gupy` mostrar erro ou 0 vagas:
 
 1. Abra <https://portal.gupy.io>, aperte **F12**, aba **Network**, filtre por **Fetch/XHR**.
 2. Pesquise "desenvolvedor junior" no site e clique na requisição que devolve a lista de vagas (resposta em JSON).
@@ -113,7 +117,7 @@ A Gupy **não tem API pública documentada**: o coletor usa o endereço que o pr
 O filtro de local roda sempre, mas só vê o que as fontes trazem. Para trazer mais vagas de lá:
 
 - **Adzuna:** já busca "Salvador" com raio de `distance_km` e, em separado, o país todo com a palavra "remoto" (`wheres` no `config.toml`).
-- **Gupy:** na busca do portal, filtre por estado/cidade e por "remoto" e, no DevTools, anote os nomes dos parâmetros que aparecem na requisição. Liste-os em `variants`, por exemplo `variants = [ { state = "Bahia" }, { workplaceType = "remote" } ]`. Sem isso, a Gupy devolve vagas do país inteiro e a maioria cai fora no filtro de local.
+- **Gupy:** na busca do portal, filtre por estado/cidade e por "remoto" e, no DevTools, anote os nomes dos parâmetros que aparecem na requisição. Os nomes que já vêm no `config.toml` são `state` (nome completo, como `Bahia`) e `workplaceType`. Se mudarem, liste os novos em `variants`, por exemplo `variants = [ { state = "Bahia" }, { workplaceType = "remote" } ]`. Sem isso, a Gupy devolve vagas do país inteiro e a maioria cai fora no filtro de local.
 
 Vagas remotas do exterior só chegam pelas fontes de empresas (Greenhouse, Lever, Ashby, Workday, SmartRecruiters). Como essas listas começam quase vazias, é você quem escolhe as empresas (passo 7).
 
@@ -136,6 +140,37 @@ O Workday só guarda vagas com "Brazil/Brasil" ou "Remote" no local. Vagas multi
 ### 8. Notícias de processos seletivos
 
 A fonte `noticias` usa o RSS de busca do Google Notícias, com buscas fixas (`queries`) e buscas montadas com os nomes das grandes empresas (`company_queries = true`). Rode `python -m vagas check --source noticias` e leia a lista de aceitos e descartados para ajustar `news_exclude_extra` e `news_min_score`. O link de cada notícia abre a matéria no veículo.
+
+### 9. Quadro de candidaturas e sincronização entre aparelhos
+
+A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e testes → Entrevista → Proposta → Encerrada. No computador você arrasta os cartões; no celular escolhe a etapa no topo e usa **Avançar** ou **Mover ou encerrar**. Dá para encerrar a candidatura de qualquer etapa (Recusada pela empresa, Sem retorno, Desisti, Vaga cancelada, ou Fui contratado quando está em Proposta). O cartão vai direto para Encerrada e guarda em que etapa parou. Cada cartão aceita um próximo passo com data (fica em destaque quando falta pouco) e uma anotação.
+
+**Sem configurar nada**, tudo fica salvo no navegador. Use *Baixar backup* e *Importar backup* para levar para outro aparelho ou guardar uma cópia.
+
+**Para sincronizar entre aparelhos** (opcional, de graça no plano Spark do Firebase):
+
+1. Em [console.firebase.google.com](https://console.firebase.google.com), crie um projeto (pode desligar o Google Analytics).
+2. **Authentication > Sign-in method**: ative **Google**. Em **Configurações > Domínios autorizados**, adicione `SEU-USUARIO.github.io`.
+3. **Firestore Database > Criar banco de dados** (modo produção, região `southamerica-east1`).
+4. Na aba **Regras** do Firestore, cole e publique (troque `SEU_EMAIL` pelo seu e-mail do Google):
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /users/{uid}/candidaturas/{id} {
+         allow read, write: if request.auth != null
+                            && request.auth.uid == uid
+                            && request.auth.token.email == 'SEU_EMAIL';
+       }
+     }
+   }
+   ```
+5. **Configurações do projeto > Seus apps > Web (`</>`)**: registre um app e copie o objeto `firebaseConfig`. Cole em `docs/firebase-config.js`, no lugar de `null`. Esses valores não são segredos; quem protege os dados são as regras acima.
+6. Faça o commit. No painel, clique em **Entrar com Google** em cada aparelho.
+
+Os dados ficam em `users/{seu-uid}/candidaturas`. Se dois aparelhos mexerem no mesmo cartão, vale a alteração mais recente. Sem internet nada se perde: o que mudou é enviado quando voltar. Vagas salvas e ocultas ainda ficam só no navegador.
+
+> A sincronização foi escrita seguindo a documentação do Firebase 10, mas só pôde ser testada sem o servidor (o ambiente de desenvolvimento não tem acesso a ele). Se aparecer erro ao entrar, a mensagem no quadro diz o motivo; o mais comum é domínio não autorizado ou regras ainda não publicadas.
 
 ## Adicionar uma fonte nova
 
