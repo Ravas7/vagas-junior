@@ -14,6 +14,7 @@ Quem usa: uma pessoa que trabalha com suporte, termina a faculdade no meio de 20
 - Remoto do exterior só se o inglês exigido for até intermediário.
 - Suporte técnico só com salário de pelo menos R$ 3.200.
 - Notícias de processos seletivos de grandes empresas entram numa seção própria.
+- Notícia de vaga de outro estado fica de fora (vale o `state` do config ou o estado do perfil). Notícia remota, EaD, nacional ou sem lugar citado aparece para todos.
 - Tudo isso fica em `config.toml`. Prefira ajustar lá a mexer no código.
 
 ## Estrutura
@@ -42,8 +43,8 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 156 testes, todos offline
-node --test tests/store.test.js tests/perfil.test.js   # 26 testes do quadro e do perfil (Node 20+)
+python -m pytest -q                  # 166 testes, todos offline
+node --test tests/store.test.js tests/perfil.test.js   # 27 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só
@@ -86,6 +87,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - Aviso de vagas novas por pessoa (navegador ou Telegram; e-mail em massa é mais caro).
    - Painel instalável no celular (PWA).
    - Página curta sobre quais dados são guardados e como apagar a conta.
+7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.
 
 ## Firebase (ligado)
 

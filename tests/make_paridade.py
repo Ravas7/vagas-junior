@@ -47,6 +47,13 @@ def corpus() -> list[Job]:
     for i, (t, d, (loc, uf, wp)) in enumerate(itertools.product(titles, descs, locs)):
         jobs.append(Job(id=f"s:{i}", source="s", title=t, company="Itaú" if i % 3 == 0 else "Acme", url="u",
                         location=loc, uf=uf, workplace=wp, description=d))
+    news = ["TCE-ES abre processo seletivo para profissionais de Tecnologia da Informação",
+            "Itaú abre programa de trainee em tecnologia", "iFood abre seleção nacional de trainee em tecnologia",
+            "Empresa de Camaçari abre vagas de tecnologia para júnior", "IFSP abre processo seletivo de TI",
+            "Startup abre vagas remotas para desenvolvedores júnior", "Prefeitura de Recife abre vagas de TI",
+            "Vagas de trainee em tecnologia em São Paulo e Salvador"]
+    for i, t in enumerate(news):
+        jobs.append(Job(id=f"n:{i}", source="noticias", title=t, company="", url="u", tipo="noticia"))
     return jobs
 
 
@@ -68,6 +75,7 @@ def profiles(padrao: dict) -> dict[str, dict]:
         "techs_destaque": p(tecnologias=["Python", "React", "SQL"]),
         "techs_filtro": p(tecnologias=["Python", "SQL"], so_minhas_techs=True),
         "local_desconhecido": p(local_desconhecido=True, nota_minima=30, estados_preferidos=["BA"]),
+        "sem_estado": p(estado=""),
     }
 
 
@@ -85,12 +93,14 @@ def build() -> str:
     for nome, perfil in perfis.items():
         out = []
         for j in jobs:
-            r = filters.evaluate_profile(j, filters.base_from_job(j), perfil)
+            r = (filters.evaluate_news_profile(j, perfil) if j.tipo == "noticia"
+                 else filters.evaluate_profile(j, filters.base_from_job(j), perfil))
             out.append([r.accepted, r.score, r.reasons])
         esperado[nome] = out
     usados = ["id", "tipo", "title", "location", "uf", "workplace", "salary", "grande", "area", "subarea",
               "nivel", "english", "techs", "years", "junior_title", "junior_desc", "pouca_exp"]
-    vagas = [{k: j.to_dict()[k] for k in usados} for j in jobs]
+    noticia = ["ufs", "score", "reasons"]
+    vagas = [{k: j.to_dict()[k] for k in usados + (noticia if j.tipo == "noticia" else [])} for j in jobs]
     data = {"vagas": vagas, "perfis": perfis, "esperado": esperado}
     return json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n"
 

@@ -50,9 +50,18 @@ test("validate aponta o que falta", () => {
   const erros = P.validate(vazio);
   assert.equal(erros.length, 3);
   const semLugar = P.normalize({ niveis: ["junior"], areas: ["dev"], presencial: true });
-  assert.match(P.validate(semLugar)[0], /estado ou escreva as cidades/);
+  assert.match(P.validate(semLugar)[0], /escolha o seu estado/);
+  const soCidade = P.normalize({ niveis: ["junior"], areas: ["dev"], cidades: ["Recife"] });
+  assert.match(P.validate(soCidade)[0], /escolha o seu estado/);   // o estado filtra as notícias
   const soEstado = P.normalize({ niveis: ["junior"], areas: ["dev"], estado: "SP" });
   assert.deepEqual(P.validate(soEstado), []);
+});
+
+test("perfil salvo antes, com as cidades de Salvador e sem estado, ganha BA", () => {
+  const antigo = P.normalize({ niveis: ["junior"], areas: ["dev"], cidades: ["Salvador", "Camaçari"], estado: "" }, padrao);
+  assert.equal(antigo.estado, "BA");
+  const outro = P.normalize({ niveis: ["junior"], areas: ["dev"], cidades: ["Recife"], estado: "" }, padrao);
+  assert.equal(outro.estado, "");
 });
 
 test("summary resume em uma linha", () => {

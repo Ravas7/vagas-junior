@@ -606,3 +606,4 @@ details.more .why { color: var(--muted); font-size: 13px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+.pf-full { grid-column: 1 / -1; }

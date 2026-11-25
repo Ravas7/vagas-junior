@@ -37,7 +37,8 @@
       ...p,
       niveis: NIVEIS.filter((n) => list(p.niveis).includes(n)),
       areas: SUBAREAS.filter((a) => areas.includes(a)),
-      estado: UFS.includes(String(p.estado || "").toUpperCase()) ? String(p.estado).toUpperCase() : "",
+      estado: UFS.includes(String(p.estado || "").toUpperCase()) ? String(p.estado).toUpperCase()
+        : d.estado && cidades.some((c) => (d.cidades || []).includes(c)) ? d.estado : "",
       cidades,
       regiao_nome: cidades.length ? (p.regiao_nome && cidades.some((c) => c === p.regiao_nome) ? p.regiao_nome : cidades[0]) : "",
       filtrar_local: true,
@@ -65,7 +66,7 @@
     if (!p.niveis.length) out.push("Escolha pelo menos um nível.");
     if (!p.areas.length) out.push("Escolha pelo menos uma área.");
     if (!p.presencial && !p.remoto && !p.exterior) out.push("Escolha pelo menos um jeito de trabalhar: presencial, remoto ou exterior.");
-    if (p.presencial && !p.estado && !p.cidades.length) out.push("Para vagas presenciais, escolha o estado ou escreva as cidades.");
+    if (p.presencial && !p.estado) out.push("Para vagas presenciais, escolha o seu estado.");
     return out;
   }
 
@@ -137,7 +138,15 @@
    * Devolve { accepted, score, reasons, comuns }. */
   function evaluate(job, p, opts) {
     const r = opts.regras;
-    if (job.tipo === "noticia") return { accepted: true, score: job.score || 0, reasons: job.reasons || [], comuns: [] };
+    if (job.tipo === "noticia") {
+      const ok = { accepted: true, score: job.score || 0, reasons: job.reasons || [], comuns: [] };
+      const ufs = job.ufs || [];                        // notícia antiga (sem ufs): passa
+      if (!get(p, "filtrar_local", true) || job.workplace === "remoto" || !ufs.length) return ok;
+      if (!get(p, "presencial", true)) return { accepted: false, score: 0, reasons: [`notícia de vaga local (${ufs.join(", ")})`], comuns: [] };
+      const estado = String(get(p, "estado", "") || "").toUpperCase();
+      if (!estado || ufs.includes(estado)) return ok;
+      return { accepted: false, score: 0, reasons: [`notícia de outro estado (${ufs.join(", ")})`], comuns: [] };
+    }
     // vaga gravada antes dos campos novos: vale o resultado de quando foi coletada
     if (job.nivel === undefined) return { accepted: true, score: job.score || 0, reasons: job.reasons || [], comuns: [], legacy: true };
 
@@ -335,6 +344,7 @@
               P.UFS.map((uf) => h("option", { value: uf, selected: p.estado === uf }, uf)))),
           h("label", { class: "pf-grow" }, h("span", {}, "Cidades (separe por vírgula)"),
             h("input", { name: "cidades", value: p.cidades.join(", "), placeholder: "Vazio = o estado todo", autocomplete: "off" })),
+          h("p", { class: "pf-hint pf-full" }, "O estado também filtra as notícias de vagas: notícias de outros estados ficam de fora, menos as de vaga remota."),
           h("button", { class: "link-btn pf-suggest", type: "button", "data-show-uf": "BA",
             onclick: (e) => { const i = e.currentTarget.form.cidades; i.value = o.cidades_padrao.join(", "); refresh(e.currentTarget.form); } },
             "Usar Salvador e região metropolitana")),

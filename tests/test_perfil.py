@@ -194,3 +194,30 @@ def test_arquivo_de_paridade_esta_em_dia():
     spec.loader.exec_module(mod)
     atual = Path("tests/fixtures/paridade.json").read_text(encoding="utf-8").replace("\r\n", "\n")
     assert atual == mod.build(), "rode: python tests/make_paridade.py"
+
+
+@pytest.mark.parametrize("title,ufs,remoto", [
+    ("TCE-ES abre processo seletivo para profissionais de TI", ["ES"], False),
+    ("IMD/UFRN abre 40 vagas no Bacharelado em TI", ["RN"], False),
+    ("IMPA Tech oferece 50 vagas em Teresina", ["PI"], False),
+    ("Empresa de Camaçari abre vagas de TI", ["BA"], False),
+    ("Prefeitura de Belém do Pará contrata", ["PA"], False),
+    ("Itaú abre vagas para tech em São Paulo e Rio de Janeiro", ["RJ", "SP"], False),
+    ("iFood abre seleção nacional para estudantes de todo o Brasil", [], True),
+    ("Grupo OLX abre programa de trainee em inteligência artificial", [], False),
+    ("Banco de El Salvador abre vagas", [], False),
+])
+def test_onde_e_a_noticia(title, ufs, remoto):
+    from vagas.filters import news_places
+    assert news_places(title) == (ufs, remoto)
+
+
+def test_noticia_de_outro_estado_nao_vai_no_email():
+    from vagas.filters import classify
+    es = Job(id="n:1", source="noticias", title="TCE-ES abre processo seletivo de tecnologia", company="",
+             url="u", tipo="noticia")
+    assert classify(es, CFG)                          # guardada (serve para quem é do ES)...
+    assert es.ufs == ["ES"] and es.padrao is False    # ...mas fora do seu perfil e do e-mail
+    ba = Job(id="n:2", source="noticias", title="Empresa de Camaçari abre vagas de tecnologia para júnior",
+             company="", url="u", tipo="noticia")
+    assert classify(ba, CFG) and ba.padrao is True

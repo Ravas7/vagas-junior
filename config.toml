@@ -23,6 +23,7 @@ levels = ["junior"]               # níveis que você quer: "estagio", "junior",
 include_estagio = false           # true = estágio também entra (o mesmo que pôr "estagio" em levels)
 # Só vagas remotas (do Brasil) ou em Salvador e região metropolitana.
 location_filter = true
+state = "BA"                      # seu estado: notícias de vagas de outros estados ficam de fora
 allow_remote = true
 remote_abroad = true              # remoto de empresa/país de fora também entra
 # Nível máximo de inglês exigido: "basico", "intermediario" (B1/B2) ou "qualquer".

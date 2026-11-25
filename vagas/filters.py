@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 from .models import Job
-from .text import ENGLISH_RANK, english_level, extract_salary, find_term, norm
+from .text import ENGLISH_RANK, UF_BY_NAME, UFS, english_level, extract_salary, find_term, norm
 
 DEV_TERMS = [
     "desenvolvedor", "desenvolvedora", "developer", "dev", "programador", "programadora",
@@ -183,6 +183,65 @@ NEWS_EXCLUDE = [
 ]
 NEWS_JUNIOR = JUNIOR_TERMS + ["jovem talento", "jovens talentos", "early careers", "programa de talentos"]
 NEWS_SENIOR = ["senior", "sr", "lider", "gerente", "diretor", "executivo", "especialista"]
+
+# --- onde é a notícia: estados citados no título ou "vale para todo lugar" ---
+NEWS_REMOTE = [
+    "remoto", "remota", "remotos", "remotas", "home office", "teletrabalho", "trabalho a distancia",
+    "todo o brasil", "todo o pais", "qualquer lugar do brasil", "selecao nacional", "ead", "a distancia", "online",
+]
+# Nomes de estado (sem acento). "Pará" fica de fora daqui porque "para" é palavra comum (ver _PARA).
+NEWS_STATES = {nome: uf for nome, uf in UF_BY_NAME.items() if nome != "para"}
+# Capitais e cidades grandes. Natal, Vitória e Palmas ficam de fora: são palavras comuns.
+NEWS_CITIES = {
+    "rio branco": "AC", "maceio": "AL", "macapa": "AP", "manaus": "AM", "salvador": "BA",
+    "feira de santana": "BA", "fortaleza": "CE", "brasilia": "DF", "grande vitoria": "ES",
+    "goiania": "GO", "sao luis": "MA", "cuiaba": "MT", "campo grande": "MS", "belo horizonte": "MG",
+    "uberlandia": "MG", "juiz de fora": "MG", "belem": "PA", "joao pessoa": "PB", "curitiba": "PR",
+    "londrina": "PR", "maringa": "PR", "recife": "PE", "teresina": "PI", "rio de janeiro": "RJ",
+    "niteroi": "RJ", "porto alegre": "RS", "porto velho": "RO", "florianopolis": "SC",
+    "joinville": "SC", "blumenau": "SC", "sao paulo": "SP", "campinas": "SP", "guarulhos": "SP",
+    "ribeirao preto": "SP", "sorocaba": "SP", "sao jose dos campos": "SP", "aracaju": "SE",
+    **{norm(c): "BA" for c in RMS_CITIES if norm(c) != "ssa"},
+}
+_UF_RE = "|".join(sorted(UFS))
+# sigla solta ("TCE-ES", "Vitória/ES", "(PE)") ou dentro de instituição ("IFSP", "UFRN", "UERN")
+_UF_TOKEN = re.compile(rf"(?<![A-Za-zÀ-ÿ])(?:IF|UF|UE)?({_UF_RE})(?![A-Za-zÀ-ÿ])")
+_PARA = re.compile(r"(?<![A-Za-zÀ-ÿ])Pará(?![A-Za-zÀ-ÿ])")
+
+
+def news_places(title: str) -> tuple[list[str], bool]:
+    """Estados citados no título de uma notícia e se ela vale para todo lugar (remoto, EaD...)."""
+    t = norm(title).replace("el salvador", "")
+    found = []
+    for name, uf in {**NEWS_STATES, **NEWS_CITIES}.items():
+        if find_term(t, [name]):
+            found.append(uf)
+    found += _UF_TOKEN.findall(title)
+    if _PARA.search(title):
+        found.append("PA")
+    ufs = sorted(set(found))
+    return ufs, bool(find_term(t, NEWS_REMOTE))
+
+
+def news_location_check(job: Job, perfil: dict) -> tuple[bool, str]:
+    """Notícia de vaga segue o local do perfil: remota ou sem lugar vale para todos."""
+    ufs = job.ufs or []
+    if not perfil.get("filtrar_local", True) or job.workplace == "remoto" or not ufs:
+        return True, ""
+    if not perfil.get("presencial", True):
+        return False, f"notícia de vaga local ({', '.join(ufs)})"
+    estado = (perfil.get("estado") or "").upper()
+    if not estado or estado in ufs:      # sem estado no perfil não dá para saber: mostra
+        return True, ""
+    return False, f"notícia de outro estado ({', '.join(ufs)})"
+
+
+def evaluate_news_profile(job: Job, perfil: dict) -> Result:
+    """Perfil sobre uma notícia já aceita: só olha o local. Nota e motivos ficam os da notícia."""
+    ok, why = news_location_check(job, perfil)
+    if not ok:
+        return Result(False, 0, [why], job.area)
+    return Result(True, job.score, list(job.reasons), job.area)
 
 # "Desenvolvedor I" é júnior, "II" é pleno, "III/IV" é sênior.
 _ROMAN_PLENO = re.compile(r"(?:^|\s)(?:ii|2)\s*$")
@@ -383,6 +442,7 @@ def profile_from_config(cfg: dict) -> dict:
         "anos_max": cfg.get("max_years", 2),
         "suporte_salario_min": cfg.get("support_min_salary", 3200),
         "suporte_sem_salario": cfg.get("support_unknown_salary", "descartar") == "incluir",
+        "estado": (cfg.get("state") or "").upper(),
         "estados_preferidos": [s.upper() for s in cfg.get("preferred_states", [])],
         "bonus_remoto": cfg.get("remote_bonus", 10),
         "bonus_grande": cfg.get("big_bonus", 10),
@@ -653,7 +713,13 @@ def classify(job: Job, cfg: dict) -> bool:
     if job.tipo == "noticia":
         result = evaluate_news(job, cfg)
         job.score, job.reasons, job.area = result.score, result.reasons, result.area
-        job.subarea, job.padrao = result.area, result.accepted
+        job.subarea = result.area
+        ufs, everywhere = news_places(job.title)
+        job.ufs = ufs
+        job.uf = ufs[0] if len(ufs) == 1 else ""
+        job.workplace = "remoto" if everywhere else ""
+        # guarda a notícia para todos; o perfil padrão decide se vai no e-mail
+        job.padrao = result.accepted and news_location_check(job, profile_from_config(cfg))[0]
         return result.accepted
 
     base = evaluate_base(job, cfg)

@@ -45,6 +45,7 @@ class Job:
     pouca_exp: bool = False      # júnior no título e "sem experiência" na descrição
     # --- resultado no perfil padrão (o do config.toml): e-mail e quem ainda não tem perfil ---
     padrao: bool = True          # vagas antigas (sem o campo) já tinham passado no perfil padrão
+    ufs: list[str] | None = None # notícias: estados citados no título ([] = nenhum); None = não avaliado
     # transitórios
     description: str = field(default="", repr=False)
     kind: str = field(default="", repr=False)   # tipo de contratação, ex.: estágio
