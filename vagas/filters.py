@@ -1,13 +1,17 @@
 """Decide se uma vaga (ou notícia de processo seletivo) serve para um dev júnior.
 
-VAGAS (evaluate), em ordem:
-1. Título com termo de dev (python, desenvolvedor, backend...) ou de área correlata
-   (dados, QA, DevOps, segurança...). Correlata exige "júnior" no título.
-2. Título com sênior/líder/especialista/etc. é descartado sempre.
-3. Título com "pleno" é descartado, a menos que também diga júnior ("Jr/Pleno").
-4. Estágio só entra se include_estagio = true.
-5. Pede mais anos de experiência que max_years e não diz júnior no título: descartado.
-6. O resto vira nota; abaixo de min_score é descartado.
+VAGAS: duas partes. evaluate() = evaluate_base() + evaluate_profile() com o perfil do config.
+
+Base (evaluate_base, vale para todo mundo): só classifica e corta o que não é de TI.
+1. Área pelo título: dev (python, desenvolvedor...), correlata (dados, QA, DevOps,
+   segurança...), suporte técnico ou hardware (assistência técnica, manutenção...).
+2. Nível pelo título: estágio, júnior, pleno, sênior (inclui líder, gerente...) ou
+   "" quando o título não diz. Correlata precisa dizer o nível no título.
+3. Junta os fatos que o perfil usa: inglês pedido, exterior, anos de experiência.
+
+Perfil (evaluate_profile, muda de pessoa para pessoa): áreas, níveis, cidade/remoto/
+exterior, inglês máximo, anos de experiência, salário mínimo de suporte e nota mínima.
+Também calcula a nota. O perfil padrão sai do [filter] do config.toml (profile_from_config).
 
 NOTÍCIAS (evaluate_news): o título precisa parecer anúncio de seleção
 ("processo seletivo", "trainee", "abre vagas"...) e falar de tecnologia. Notícia sobre
@@ -58,6 +62,22 @@ NOT_IT_SUPPORT = [
     "cliente", "clientes", "customer", "sac", "vendas", "comercial", "financeiro", "rh",
     "juridico", "cobranca", "call center", "telemarketing", "atendente", "recepcionista",
 ]
+# Hardware e assistência técnica (montagem, manutenção e reparo de equipamentos).
+HARDWARE_TERMS = [
+    "hardware", "assistencia tecnica", "tecnico de informatica", "tecnico em informatica",
+    "tecnico de hardware", "manutencao de computadores", "manutencao de notebooks",
+    "manutencao de hardware", "manutencao de equipamentos de informatica",
+    "montagem de computadores", "tecnico de bancada", "reparo de computadores",
+    "reparo de notebooks", "reparo de celulares", "tecnico de celular", "tecnico de celulares",
+    "tecnico em eletronica", "tecnico de eletronica", "microinformatica",
+    "tecnico de microinformatica", "field service", "hardware technician",
+]
+# Assistência técnica de outras coisas (ar-condicionado, carro...) não é TI.
+NOT_HARDWARE = [
+    "ar condicionado", "ar-condicionado", "refrigeracao", "automotivo", "automotiva",
+    "veiculos", "eletrodomesticos", "elevador", "elevadores", "predial", "eletricista",
+    "mecanico", "mecanica", "vendas", "comercial", "atendente",
+]
 JUNIOR_TERMS = [
     "junior", "jr", "trainee", "entry level", "entry-level", "nivel 1", "iniciante",
     "recem formado", "recem-formado", "primeiro emprego", "sem experiencia",
@@ -65,9 +85,10 @@ JUNIOR_TERMS = [
 SENIOR_TERMS = [
     "senior", "sr", "lead", "leader", "lider", "especialista", "specialist", "staff",
     "principal", "head", "gerente", "manager", "coordenador", "coordenadora",
-    "arquiteto", "arquiteta", "architect", "tech lead", "semi senior", "semi-senior",
+    "arquiteto", "arquiteta", "architect", "tech lead",
 ]
-PLENO_TERMS = ["pleno", "pl", "mid", "mid-level", "intermediario", "intermediate"]
+PLENO_TERMS = ["pleno", "pl", "mid", "mid-level", "intermediario", "intermediate",
+               "semi senior", "semi-senior"]
 ESTAGIO_TERMS = ["estagio", "estagiario", "estagiaria", "intern", "internship"]
 
 # Empresas grandes e multinacionais com operação no Brasil. Termos ambíguos em
@@ -132,8 +153,9 @@ NEWS_EXCLUDE = [
 NEWS_JUNIOR = JUNIOR_TERMS + ["jovem talento", "jovens talentos", "early careers", "programa de talentos"]
 NEWS_SENIOR = ["senior", "sr", "lider", "gerente", "diretor", "executivo", "especialista"]
 
-# "Desenvolvedor II/III/IV" costuma ser pleno ou acima; "Desenvolvedor I" é júnior.
-_ROMAN_HIGH = re.compile(r"(?:^|\s)(?:ii|iii|iv)\s*$")
+# "Desenvolvedor I" é júnior, "II" é pleno, "III/IV" é sênior.
+_ROMAN_PLENO = re.compile(r"(?:^|\s)(?:ii|2)\s*$")
+_ROMAN_SENIOR = re.compile(r"(?:^|\s)(?:iii|iv|3|4)\s*$")
 _ROMAN_ONE = re.compile(r"(?:^|\s)(?:i|1)\s*$")
 _YEARS = [
     re.compile(r"(?:experiencia|experience)[^.\n]{0,60}?(\d{1,2})\s*\+?\s*(?:anos|ano|years|yrs)"),
@@ -146,9 +168,22 @@ class Result:
     accepted: bool
     score: int
     reasons: list[str] = field(default_factory=list)
-    area: str = "dev"
+    area: str = "dev"            # dev | correlata | suporte | hardware
     english: str = ""
     abroad: bool = False
+    nivel: str = ""              # estagio | junior | pleno | senior | "" (título não diz)
+    # fatos que o perfil usa para a nota (vêm da descrição, que não fica salva)
+    junior_title: bool = False   # "júnior", "jr", "trainee"... no título
+    junior_desc: bool = False    # "júnior" só na descrição
+    pouca_exp: bool = False      # júnior no título e "sem experiência" na descrição
+    years: int = 0               # anos de experiência pedidos (0 = não diz)
+
+
+NIVEIS = ["estagio", "junior", "pleno", "senior"]
+NIVEL_NOME = {"estagio": "estágio", "junior": "júnior", "pleno": "pleno", "senior": "sênior ou acima"}
+AREAS = ["dev", "correlata", "suporte", "hardware"]
+AREA_NOME = {"dev": "desenvolvimento", "correlata": "área correlata", "suporte": "suporte técnico",
+             "hardware": "hardware e assistência técnica"}
 
 
 def required_years(text_norm: str) -> int:
@@ -173,26 +208,6 @@ def is_abroad(job: Job) -> bool:
     return bool(find_term(loc, REMOTE_BLOCK) and not find_term(loc, REMOTE_OK))
 
 
-def location_check(job: Job, cfg: dict) -> tuple[bool, str]:
-    """Aceita vaga remota (do Brasil) ou em Salvador/região metropolitana."""
-    if not cfg.get("location_filter", False):
-        return True, ""
-    not_ssa = lambda t: norm(t).replace("el salvador", "").replace("san salvador", "")  # outro país
-    loc = not_ssa(job.location)
-    if job.workplace == "remoto" and cfg.get("allow_remote", True):
-        if is_abroad(job):
-            if not cfg.get("remote_abroad", True):
-                return False, f"remoto restrito a outro país ({job.location})"
-            return True, "remoto no exterior"
-        return True, "remoto"
-    cities = [norm(c) for c in cfg.get("allowed_cities", RMS_CITIES)]
-    if find_term(loc, cities) or find_term(not_ssa(job.title), cities):
-        return True, "região de Salvador"
-    if not loc and cfg.get("unknown_location", "descartar") == "incluir":
-        return True, "local não informado"
-    return False, f"fora de Salvador e região ({job.location or 'local não informado'})"
-
-
 def age_days(job: Job) -> int | None:
     """Há quantos dias a vaga foi publicada (None se a fonte não informa a data)."""
     if not job.posted_at:
@@ -204,14 +219,125 @@ def age_days(job: Job) -> int | None:
     return (datetime.now(timezone.utc).date() - posted).days
 
 
-def evaluate(job: Job, cfg: dict) -> Result:
+def job_level(title_norm: str, kind_norm: str, junior_terms: list[str]) -> tuple[str, bool]:
+    """Nível da vaga pelo título (e tipo de contrato). Devolve (nível, júnior no título)."""
+    junior_title = bool(find_term(title_norm, junior_terms) or _ROMAN_ONE.search(title_norm))
+    sem_semi = title_norm.replace("semi senior", "").replace("semi-senior", "")
+    if find_term(sem_semi, SENIOR_TERMS) or _ROMAN_SENIOR.search(title_norm):
+        return "senior", junior_title
+    if find_term(title_norm, ESTAGIO_TERMS):
+        return "estagio", junior_title
+    # "Jr/Pleno" conta como júnior; "Pleno" sozinho manda mais que o tipo de contrato.
+    if not junior_title and (find_term(title_norm, PLENO_TERMS) or _ROMAN_PLENO.search(title_norm)):
+        return "pleno", False
+    if find_term(kind_norm, ESTAGIO_TERMS):      # contrato de estágio, mesmo com "Jr" no título
+        return "estagio", junior_title
+    if junior_title:
+        return "junior", True
+    return "", False
+
+
+# ---------------------------------------------------------------- perfil
+# O perfil guarda o que muda de pessoa para pessoa. As chaves são simples (JSON)
+# porque o mesmo perfil vai ser lido pelo painel e salvo no Firestore.
+PROFILE_DEFAULTS = {
+    "niveis": ["junior"],           # estagio | junior | pleno | senior (um ou mais)
+    "areas": ["dev", "correlata", "suporte"],   # + "hardware"
+    "filtrar_local": True,          # False = aceita qualquer local
+    "regiao_nome": "Salvador",      # só para as mensagens ("região de Salvador")
+    "cidades": RMS_CITIES,          # cidades aceitas para vaga presencial/híbrida
+    "local_desconhecido": False,    # True = aceita vaga não remota sem local informado
+    "remoto": True,                 # aceita remoto no Brasil
+    "exterior": True,               # aceita remoto de empresa/local fora do Brasil
+    "ingles_max": "intermediario",  # basico | intermediario | qualquer
+    "anos_max": 2,                  # pede mais anos que isso: descarta (0 = sem limite)
+    "suporte_salario_min": 3200,
+    "suporte_sem_salario": False,   # True = mostra suporte sem salário informado
+    "estados_preferidos": [],       # +10 de nota
+    "bonus_remoto": 10,
+    "bonus_grande": 10,
+    "nota_minima": 40,
+}
+
+
+def profile_from_config(cfg: dict) -> dict:
+    """Monta o perfil a partir da seção [filter] do config.toml (o perfil padrão)."""
+    areas = ["dev"]
+    if cfg.get("related_enabled", True):
+        areas.append("correlata")
+    if cfg.get("support_enabled", True):
+        areas.append("suporte")
+    if cfg.get("hardware_enabled", False):
+        areas.append("hardware")
+    niveis = list(cfg.get("levels", ["junior"]))
+    if cfg.get("include_estagio", False) and "estagio" not in niveis:
+        niveis.insert(0, "estagio")
+    return {
+        **PROFILE_DEFAULTS,
+        "niveis": niveis,
+        "areas": areas,
+        "filtrar_local": bool(cfg.get("location_filter", False)),
+        "cidades": list(cfg.get("allowed_cities", RMS_CITIES)),
+        "local_desconhecido": cfg.get("unknown_location", "descartar") == "incluir",
+        "remoto": bool(cfg.get("allow_remote", True)),
+        "exterior": bool(cfg.get("remote_abroad", True)),
+        "ingles_max": cfg.get("max_english", "intermediario"),
+        "anos_max": cfg.get("max_years", 2),
+        "suporte_salario_min": cfg.get("support_min_salary", 3200),
+        "suporte_sem_salario": cfg.get("support_unknown_salary", "descartar") == "incluir",
+        "estados_preferidos": [s.upper() for s in cfg.get("preferred_states", [])],
+        "bonus_remoto": cfg.get("remote_bonus", 10),
+        "bonus_grande": cfg.get("big_bonus", 10),
+        "nota_minima": cfg.get("min_score", 40),
+    }
+
+
+def location_check(job: Job, perfil: dict) -> tuple[bool, str]:
+    """Aceita vaga remota (do Brasil, ou de fora se o perfil deixar) ou nas cidades do perfil."""
+    if not perfil.get("filtrar_local", True):
+        return True, ""
+    regiao = perfil.get("regiao_nome", "")
+    not_ssa = lambda t: norm(t).replace("el salvador", "").replace("san salvador", "")  # outro país
+    loc = not_ssa(job.location)
+    if job.workplace == "remoto" and perfil.get("remoto", True):
+        if is_abroad(job):
+            if not perfil.get("exterior", True):
+                return False, f"remoto restrito a outro país ({job.location})"
+            return True, "remoto no exterior"
+        return True, "remoto"
+    cities = [norm(c) for c in perfil.get("cidades", [])]
+    if cities and (find_term(loc, cities) or find_term(not_ssa(job.title), cities)):
+        return True, f"região de {regiao}" if regiao else "sua região"
+    if not loc and perfil.get("local_desconhecido", False):
+        return True, "local não informado"
+    fora = f"fora de {regiao} e região" if regiao else "fora das suas cidades"
+    return False, f"{fora} ({job.location or 'local não informado'})"
+
+
+def level_check(area: str, nivel: str, niveis: list[str]) -> bool:
+    """A vaga tem um nível que o perfil quer?"""
+    if nivel in niveis:
+        return True
+    if nivel == "":                 # título não diz: entra para quem não quer só estágio
+        return any(n in niveis for n in ("junior", "pleno", "senior"))
+    # Suporte "pleno" entra para quem quer júnior: em suporte quem decide é o salário.
+    return area == "suporte" and nivel == "pleno" and "junior" in niveis
+
+
+# ---------------------------------------------------------------- vagas
+def evaluate_base(job: Job, cfg: dict) -> Result:
+    """Regras que valem para todo mundo: é vaga de TI? De que área e nível?
+
+    Não descarta por nível, local, inglês ou salário: isso é do perfil.
+    `accepted` aqui quer dizer "passou na base"; a nota é calculada pelo perfil.
+    """
     title = norm(job.title)
     desc = norm(job.description or job.snippet)
     kind = norm(job.kind)
-    reasons: list[str] = []
 
     dev_terms = DEV_TERMS + [norm(t) for t in cfg.get("dev_terms_extra", [])]
     related_terms = RELATED_TERMS + [norm(t) for t in cfg.get("related_terms_extra", [])]
+    support_terms = SUPPORT_TERMS + [norm(t) for t in cfg.get("support_terms_extra", [])]
     junior_terms = JUNIOR_TERMS + [norm(t) for t in cfg.get("junior_terms_extra", [])]
 
     if norm(job.company) in {norm(c) for c in cfg.get("exclude_companies", [])}:
@@ -223,97 +349,129 @@ def evaluate(job: Job, cfg: dict) -> Result:
     if max_age and age is not None and age > max_age:
         return Result(False, 0, [f"publicada há {age} dias (limite: {max_age})"])
 
-    dev_hit = find_term(title, dev_terms)
-    related_hit = None if dev_hit or not cfg.get("related_enabled", True) else find_term(title, related_terms)
-    support_hit = None
-    if not (dev_hit or related_hit) and cfg.get("support_enabled", True):
-        support_terms = SUPPORT_TERMS + [norm(t) for t in cfg.get("support_terms_extra", [])]
-        if find_term(title, support_terms) and not find_term(title, NOT_IT_SUPPORT):
-            support_hit = True
-    if not (dev_hit or related_hit or support_hit):
-        return Result(False, 0, ["sem termo de dev, área correlata ou suporte no título"])
-    area = "dev" if dev_hit else "correlata" if related_hit else "suporte"
+    if find_term(title, dev_terms):
+        area = "dev"
+    elif find_term(title, related_terms):
+        area = "correlata"
+    elif find_term(title, support_terms) and not find_term(title, NOT_IT_SUPPORT):
+        area = "suporte"
+    elif find_term(title, HARDWARE_TERMS) and not find_term(title, NOT_HARDWARE):
+        area = "hardware"
+    else:
+        return Result(False, 0, ["sem termo de dev, área correlata, suporte ou hardware no título"])
 
-    if find_term(title, SENIOR_TERMS) or _ROMAN_HIGH.search(title):
-        return Result(False, 0, ["título de nível sênior ou acima"], area)
+    nivel, junior_title = job_level(title, kind, junior_terms)
+    if area == "correlata" and not nivel:
+        return Result(False, 0, ["área correlata sem nível no título"], area)
 
-    junior_in_title = bool(find_term(title, junior_terms) or _ROMAN_ONE.search(title))
-    is_estagio = bool(find_term(title, ESTAGIO_TERMS) or find_term(kind, ESTAGIO_TERMS))
+    return Result(
+        True, 0, [], area,
+        english=english_level(f"{job.title} {job.description or job.snippet}"),
+        abroad=job.workplace == "remoto" and is_abroad(job),
+        nivel=nivel,
+        junior_title=junior_title,
+        junior_desc=not junior_title and bool(find_term(desc, junior_terms)),
+        pouca_exp=junior_title and bool(find_term(desc, ["sem experiencia", "recem formado", "primeiro emprego"])),
+        years=required_years(desc),
+    )
 
-    if is_estagio and not cfg.get("include_estagio", False):
-        return Result(False, 0, ["estágio (include_estagio = false)"], area)
-    if area != "suporte" and find_term(title, PLENO_TERMS) and not junior_in_title:
-        return Result(False, 0, ["título de nível pleno"], area)
-    if area == "correlata" and not (junior_in_title or is_estagio):
-        return Result(False, 0, ["área correlata sem 'júnior' no título"], area)
 
-    loc_ok, loc_reason = location_check(job, cfg)
+def evaluate_profile(job: Job, base: Result, perfil: dict) -> Result:
+    """Aplica o perfil de uma pessoa sobre uma vaga que já passou na base e dá a nota.
+
+    Só usa dados que ficam salvos na vaga (local, modalidade, salário) e o
+    resultado da base. Assim o painel consegue repetir a mesma conta em JS.
+    """
+    area, nivel, english = base.area, base.nivel, base.english
+    niveis = perfil.get("niveis", ["junior"])
+    facts = dict(area=area, english=english, nivel=nivel, junior_title=base.junior_title,
+                 junior_desc=base.junior_desc, pouca_exp=base.pouca_exp, years=base.years)
+
+    def rejected(why: str, abroad: bool = base.abroad) -> Result:
+        return Result(False, 0, [why], abroad=abroad, **facts)
+
+    if area not in perfil.get("areas", ["dev", "correlata", "suporte"]):
+        return rejected(f"{AREA_NOME[area]} fora do perfil")
+    if not level_check(area, nivel, niveis):
+        return rejected(f"nível {NIVEL_NOME.get(nivel, 'não informado')} fora do perfil"
+                        if nivel else "nível não informado (perfil só de estágio)")
+
+    loc_ok, loc_reason = location_check(job, perfil)
     if not loc_ok:
-        return Result(False, 0, [loc_reason], area)
-
+        return rejected(loc_reason)
     abroad = loc_reason == "remoto no exterior"
-    english = english_level(f"{job.title} {job.description or job.snippet}")
-    cap = cfg.get("max_english", "intermediario")
+
+    cap = perfil.get("ingles_max", "intermediario")
     if cap in ENGLISH_RANK and ENGLISH_RANK[english] > ENGLISH_RANK[cap]:
-        return Result(False, 0, [f"exige inglês {english} (limite: {cap})"], area, english, abroad)
+        return rejected(f"exige inglês {english} (limite: {cap})", abroad)
 
     if area == "suporte":
-        minimum = cfg.get("support_min_salary", 3200)
-        if job.salary <= 0 and cfg.get("support_unknown_salary", "descartar") != "incluir":
-            return Result(False, 0, [f"suporte sem salário informado (mínimo R$ {minimum})"], area)
+        minimum = perfil.get("suporte_salario_min", 3200)
+        if job.salary <= 0 and not perfil.get("suporte_sem_salario", False):
+            return rejected(f"suporte sem salário informado (mínimo R$ {minimum})")
         if 0 < job.salary < minimum:
-            return Result(False, 0, [f"suporte paga R$ {job.salary} (mínimo R$ {minimum})"], area)
+            return rejected(f"suporte paga R$ {job.salary} (mínimo R$ {minimum})")
 
-    years = required_years(desc)
-    max_years = cfg.get("max_years", 2)
-    if area != "suporte" and years > max_years and not junior_in_title:
-        return Result(False, 0, [f"pede {years} anos de experiência"], area)
+    tech_area = area in ("dev", "correlata")      # suporte e hardware não olham experiência
+    years, max_years = base.years, int(perfil.get("anos_max", 0) or 0)
+    if tech_area and max_years and years > max_years and not base.junior_title:
+        return rejected(f"pede {years} anos de experiência")
 
-    score = {"dev": 20, "correlata": 10, "suporte": 40}[area]
-    reasons.append({"dev": "termo de dev no título", "correlata": "área correlata no título",
-                    "suporte": "suporte técnico"}[area])
+    # --- nota ---
+    score = {"dev": 20, "correlata": 10, "suporte": 40, "hardware": 40}[area]
+    reasons = [{"dev": "termo de dev no título", "correlata": "área correlata no título",
+                "suporte": "suporte técnico", "hardware": "hardware e assistência técnica"}[area]]
     if area == "suporte":
         reasons.append(f"salário R$ {job.salary}" if job.salary else "salário não informado")
-    elif junior_in_title:
+    elif area == "hardware":
+        if job.salary:
+            reasons.append(f"salário R$ {job.salary}")
+    elif nivel and nivel in niveis:
         score += 50
-        reasons.append("júnior no título")
-    elif is_estagio:
-        score += 50
-        reasons.append("estágio")
-    elif find_term(desc, junior_terms):
+        reasons.append("júnior no título" if base.junior_title
+                       else "estágio" if nivel == "estagio" else f"{NIVEL_NOME[nivel]} no título")
+    elif not nivel and base.junior_desc and "junior" in niveis:
         score += 20
         reasons.append("júnior na descrição")
-    if area != "suporte" and junior_in_title and find_term(desc, ["sem experiencia", "recem formado", "primeiro emprego"]):
+    if tech_area and base.pouca_exp:
         score += 5
         reasons.append("aceita pouca experiência")
-    if area != "suporte" and 0 < years <= max_years:
+    if tech_area and max_years and 0 < years <= max_years:
         score += 5
         reasons.append(f"pede até {years} anos")
-    if area != "suporte" and years > max_years:
+    if tech_area and max_years and years > max_years:
         score -= 30
         reasons.append(f"pede {years} anos (penalizado)")
     if job.grande:
-        score += cfg.get("big_bonus", 10)
+        score += perfil.get("bonus_grande", 10)
         reasons.append("grande empresa")
     if job.workplace == "remoto":
-        score += cfg.get("remote_bonus", 10)
+        score += perfil.get("bonus_remoto", 10)
         reasons.append("remoto")
-    elif loc_reason == "região de Salvador":
+    elif loc_reason.startswith("região de") or loc_reason == "sua região":
         score += 10
-        reasons.append("região de Salvador")
+        reasons.append(loc_reason)
     if abroad:
         reasons.append("no exterior")
     if english:
         reasons.append(f"inglês {english}")
-    preferred = {s.upper() for s in cfg.get("preferred_states", [])}
+    preferred = {s.upper() for s in perfil.get("estados_preferidos", [])}
     if job.uf and job.uf in preferred:
         score += 10
         reasons.append(f"estado preferido ({job.uf})")
 
-    accepted = score >= cfg.get("min_score", 40)
+    accepted = score >= perfil.get("nota_minima", 40)
     if not accepted:
         reasons.append("nota abaixo do mínimo")
-    return Result(accepted, score, reasons, area, english, abroad)
+    return Result(accepted, score, reasons, abroad=abroad, **facts)
+
+
+def evaluate(job: Job, cfg: dict) -> Result:
+    """Base + perfil padrão (o do config.toml). É o que o e-mail usa."""
+    base = evaluate_base(job, cfg)
+    if not base.accepted:
+        return base
+    return evaluate_profile(job, base, profile_from_config(cfg))
 
 
 def evaluate_news(job: Job, cfg: dict) -> Result:

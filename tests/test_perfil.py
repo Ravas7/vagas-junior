@@ -1,0 +1,140 @@
+"""Filtro em duas partes: base (vale para todos) + perfil (muda de pessoa para pessoa)."""
+
+import tomllib
+
+import pytest
+
+from vagas.filters import evaluate, evaluate_base, evaluate_profile, profile_from_config
+from vagas.models import Job
+
+
+def job(title, description="", workplace="remoto", location="", uf="", kind="", salary=0):
+    return Job(id="t:1", source="t", title=title, company="Acme", url="https://x", location=location,
+               uf=uf, workplace=workplace, description=description, kind=kind, salary=salary)
+
+
+CFG = tomllib.load(open("config.toml", "rb"))["filter"]
+PADRAO = profile_from_config(CFG)
+
+
+def base(j):
+    r = evaluate_base(j, CFG)
+    assert r.accepted, r.reasons
+    return r
+
+
+def com_perfil(j, **mudancas):
+    return evaluate_profile(j, base(j), {**PADRAO, **mudancas})
+
+
+def test_perfil_padrao_reproduz_o_config():
+    assert PADRAO["niveis"] == ["junior"]
+    assert PADRAO["areas"] == ["dev", "correlata", "suporte"]          # sem hardware
+    assert PADRAO["filtrar_local"] is True
+    assert "Salvador" in PADRAO["cidades"] and "Camaçari" in PADRAO["cidades"]
+    assert PADRAO["remoto"] and PADRAO["exterior"]
+    assert PADRAO["ingles_max"] == "intermediario"
+    assert PADRAO["anos_max"] == CFG["max_years"]
+    assert PADRAO["suporte_salario_min"] == 3200 and PADRAO["suporte_sem_salario"] is False
+    assert PADRAO["nota_minima"] == CFG["min_score"]
+
+
+@pytest.mark.parametrize("title,kind,nivel", [
+    ("Desenvolvedor Python Júnior", "", "junior"),
+    ("Dev React Jr/Pleno", "", "junior"),
+    ("Desenvolvedor Java I", "", "junior"),
+    ("Estágio em Desenvolvimento de Software", "", "estagio"),
+    ("Desenvolvedor Jr", "estagio", "estagio"),                        # contrato de estágio
+    ("Desenvolvedor Java Pleno", "", "pleno"),
+    ("Desenvolvedor Back-end Semi Sênior", "", "pleno"),
+    ("Desenvolvedor Java II", "", "pleno"),
+    ("Desenvolvedor Python Sênior", "", "senior"),
+    ("Tech Lead Backend", "", "senior"),
+    ("Desenvolvedor Java III", "", "senior"),
+    ("Desenvolvedor Full Stack", "", ""),                             # título não diz
+])
+def test_base_classifica_o_nivel_sem_descartar(title, kind, nivel):
+    assert base(job(title, kind=kind)).nivel == nivel
+
+
+def test_base_nao_olha_local_nem_ingles():
+    assert evaluate_base(job("Desenvolvedor Jr", workplace="presencial", location="Recife, PE"), CFG).accepted
+    assert evaluate_base(job("Desenvolvedor Jr", "Inglês fluente"), CFG).accepted
+
+
+def test_base_continua_cortando_o_que_nao_e_ti():
+    assert not evaluate_base(job("Vendedor Júnior"), CFG).accepted
+    assert not evaluate_base(job("Analista de Dados"), CFG).accepted     # correlata sem nível
+    assert not evaluate_base(job("Técnico de Assistência Técnica de Ar Condicionado"), CFG).accepted
+
+
+def test_evaluate_e_base_mais_perfil_padrao():
+    j = job("Desenvolvedor Python Jr", workplace="presencial", location="Salvador, BA", uf="BA")
+    r = evaluate(j, CFG)
+    assert r.accepted and "região de Salvador" in r.reasons
+    assert r == com_perfil(j)
+
+
+def test_niveis_do_perfil():
+    jr, pleno, senior = job("Desenvolvedor Jr"), job("Desenvolvedor Pleno"), job("Desenvolvedor Sênior")
+    estagio, sem_nivel = job("Estágio em Desenvolvimento de Software"), job("Desenvolvedor Full Stack", "Vaga júnior")
+
+    assert [com_perfil(j).accepted for j in (jr, pleno, senior, estagio, sem_nivel)] == [True, False, False, False, True]
+
+    so_estagio = dict(niveis=["estagio"])
+    assert [com_perfil(j, **so_estagio).accepted for j in (jr, pleno, senior, estagio, sem_nivel)] == [False, False, False, True, False]
+
+    pleno_senior = dict(niveis=["pleno", "senior"], anos_max=0)
+    r = com_perfil(pleno, **pleno_senior)
+    assert r.accepted and "pleno no título" in r.reasons
+    assert com_perfil(senior, **pleno_senior).accepted
+    assert not com_perfil(jr, **pleno_senior).accepted
+
+
+def test_anos_de_experiencia_do_perfil():
+    j = job("Desenvolvedor Pleno", "Experiência de 4 anos com Java")
+    assert not com_perfil(j, niveis=["pleno"]).accepted                 # anos_max = 2 no padrão
+    assert com_perfil(j, niveis=["pleno"], anos_max=5).accepted
+    assert com_perfil(j, niveis=["pleno"], anos_max=0).accepted         # 0 = sem limite
+
+
+def test_hardware_e_area_do_perfil():
+    j = job("Técnico de Manutenção de Computadores", workplace="presencial", location="Salvador, BA")
+    assert base(j).area == "hardware"
+    assert not com_perfil(j).accepted                                  # padrão não tem hardware
+    r = com_perfil(j, areas=["hardware"])
+    assert r.accepted and "hardware e assistência técnica" in r.reasons
+    assert base(job("Técnico de Informática")).area == "hardware"
+    assert base(job("Assistência Técnica de Notebooks Jr")).area == "hardware"
+
+
+def test_cidade_vem_do_perfil():
+    j = job("Desenvolvedor Jr", workplace="presencial", location="Recife, PE", uf="PE")
+    assert not com_perfil(j).accepted
+    r = com_perfil(j, cidades=["Recife", "Olinda"], regiao_nome="Recife")
+    assert r.accepted and "região de Recife" in r.reasons
+
+
+def test_exterior_e_ingles_do_perfil():
+    j = job("Software Engineer Junior", "Fluent English required", location="Remote - United States")
+    assert not com_perfil(j).accepted                                  # inglês acima do limite
+    assert com_perfil(j, ingles_max="qualquer").accepted
+    assert not com_perfil(j, ingles_max="qualquer", exterior=False).accepted
+
+
+def test_areas_e_suporte_do_perfil():
+    dados = job("Analista de Dados Júnior")
+    assert com_perfil(dados).accepted
+    assert not com_perfil(dados, areas=["dev"]).accepted
+
+    suporte = job("Analista de Suporte N1", salary=2800)
+    assert not com_perfil(suporte).accepted                            # abaixo de R$ 3.200
+    assert com_perfil(suporte, suporte_salario_min=2500).accepted
+    assert com_perfil(job("Analista de Suporte N1"), suporte_sem_salario=True).accepted
+    assert com_perfil(job("Analista de Suporte Pleno", salary=3500)).accepted   # regra de antes
+
+
+def test_nota_minima_do_perfil():
+    j = job("Desenvolvedor Full Stack", "Vaga para júnior")             # 20 + 20 + 10 remoto
+    assert com_perfil(j).score == 50
+    assert not com_perfil(j, nota_minima=60).accepted

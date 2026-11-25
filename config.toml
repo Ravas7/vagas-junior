@@ -1,4 +1,4 @@
-# Configuração do radar de vagas júnior.
+# Configuração do Ragas (central de vagas).
 # Segredos (senha de e-mail, chaves de API) NÃO ficam aqui: use variáveis de
 # ambiente / Secrets do GitHub (veja o README).
 
@@ -13,13 +13,14 @@ max_per_email = 40                # vagas por e-mail; o restante aparece só no 
 max_news_per_email = 10           # notícias de processo seletivo por e-mail
 min_score = 40                    # suba (ex.: 60) para receber só as melhores
 send_when_empty = false           # true = avisa até quando não há vagas novas
-subject_prefix = "Vagas júnior"
+subject_prefix = "Ragas"
 # dashboard_url = "https://SEU_USUARIO.github.io/vagas-junior/"   # no GitHub Actions é montado sozinho
 
 [filter]
 min_score = 40
 max_years = 2                     # pedir mais que isso (sem "júnior" no título) descarta
-include_estagio = false           # true = estágio também entra
+levels = ["junior"]               # níveis que você quer: "estagio", "junior", "pleno", "senior"
+include_estagio = false           # true = estágio também entra (o mesmo que pôr "estagio" em levels)
 # Só vagas remotas (do Brasil) ou em Salvador e região metropolitana.
 location_filter = true
 allow_remote = true
@@ -40,7 +41,8 @@ keep_days = 45                    # vaga não vista há tanto tempo sai do arqui
 keep_days_news = 30               # notícias saem mais cedo
 news_min_score = 40
 big_bonus = 10                    # +10 de nota para empresas grandes e multinacionais
-related_enabled = true            # inclui dados, QA, DevOps, segurança... (exige "júnior" no título)
+related_enabled = true            # inclui dados, QA, DevOps, segurança... (exige o nível no título)
+hardware_enabled = false          # true = hardware e assistência técnica (manutenção, técnico de informática...)
 exclude_companies = []
 exclude_title_terms = []          # ex.: ["suporte", "sap"]
 dev_terms_extra = []              # ex.: ["abap"]
