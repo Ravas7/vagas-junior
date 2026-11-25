@@ -44,13 +44,15 @@ DEV_TERMS = [
 RELATED_GROUPS = {
     "dados": ["analista de dados", "engenheiro de dados", "engenheira de dados", "cientista de dados",
               "data analyst", "data engineer", "data scientist", "business intelligence", "power bi",
-              "machine learning", "inteligencia artificial", "analista de bi"],
+              "machine learning", "inteligencia artificial", "analista de bi", "banco de dados"],
     "qa": ["qa", "quality assurance", "analista de qualidade de software", "analista de testes",
            "engenheiro de qualidade", "tester", "test engineer", "sdet"],
     "devops": ["devops", "sre", "cloud", "engenheiro de nuvem", "analista de nuvem"],
     "seguranca": ["seguranca da informacao", "ciberseguranca", "cybersecurity", "analista de seguranca"],
     "infra": ["analista de infraestrutura", "infraestrutura de ti", "analista de redes",
-              "analista de ti", "analista de tecnologia"],
+              "analista de ti", "analista de tecnologia",
+              # genéricos, comuns em estágio ("Estagiário em TI"); correlata exige o nível no título
+              "ti", "tecnologia da informacao", "sistemas de informacao"],
 }
 RELATED_TERMS = [t for terms in RELATED_GROUPS.values() for t in terms]
 
@@ -108,6 +110,7 @@ NOT_HARDWARE = [
     "ar condicionado", "ar-condicionado", "refrigeracao", "automotivo", "automotiva",
     "veiculos", "eletrodomesticos", "elevador", "elevadores", "predial", "eletricista",
     "mecanico", "mecanica", "vendas", "comercial", "atendente",
+    "engenharia civil", "civil", "obras", "construcao", "seguranca do trabalho", "eletrica",
 ]
 JUNIOR_TERMS = [
     "junior", "jr", "trainee", "entry level", "entry-level", "nivel 1", "iniciante",

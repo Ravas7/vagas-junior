@@ -13,7 +13,7 @@ import time
 
 from ..http import SourceError, get_json
 from ..models import Job
-from ..text import infer_workplace, to_uf
+from ..text import UF_NOME, infer_workplace, to_uf
 from .base import date_of, finish, pick, snippet_of
 
 NAME = "gupy"
@@ -68,6 +68,19 @@ def parse(raw: dict) -> Job | None:
     )
 
 
+def build_variants(states: list[str], remote: bool = True) -> list[dict]:
+    """["BA", "PE"] -> [{"state": "Bahia"}, {"state": "Pernambuco"}, {"workplaceType": "remote"}]."""
+    out = []
+    for uf in states:
+        name = UF_NOME.get(str(uf).upper())
+        if not name:
+            raise SourceError(f"estado desconhecido em sources.gupy.states: {uf!r} (use a sigla, ex.: BA)")
+        out.append({"state": name})
+    if remote:
+        out.append({"workplaceType": "remote"})
+    return out or [{}]
+
+
 def fetch(cfg: dict) -> list[Job]:
     url = cfg.get("url", DEFAULT_URL)
     terms = cfg.get("terms", ["desenvolvedor junior"])
@@ -78,9 +91,9 @@ def fetch(cfg: dict) -> list[Job]:
     limit_param = cfg.get("limit_param", "limit")
     offset_param = cfg.get("offset_param", "offset")
     extra = dict(cfg.get("extra_params", {}))
-    # variants: cada item é um conjunto de parâmetros extra (ex.: só Bahia; só remoto).
-    # Os nomes dos parâmetros vêm do DevTools (README, passo 6).
-    variants = cfg.get("variants") or [{}]
+    # Uma passada por estado (vagas presenciais e híbridas) e uma só de remotas (Brasil todo).
+    # "variants" no config substitui isso (parâmetros copiados do DevTools, README passo 6).
+    variants = cfg.get("variants") or build_variants(cfg.get("states", []), cfg.get("remote", True))
 
     found: dict[str, Job] = {}
     ok_calls, errors = 0, []

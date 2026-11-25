@@ -43,7 +43,7 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 166 testes, todos offline
+python -m pytest -q                  # 173 testes, todos offline
 node --test tests/store.test.js tests/perfil.test.js   # 27 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
@@ -61,6 +61,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 - Antes de enviar ao GitHub: `git pull --rebase origin main`, depois `git push`.
 - Sem dependências externas no Python e sem etapa de build no painel. Mantenha assim, a não ser que eu peça.
 - Uma fonte que falha só gera aviso. Nunca deixe uma fonte derrubar a coleta inteira.
+- A Gupy busca a frase exata do termo ("estagio desenvolvimento" não acha nada; "estágio" acha tudo). Antes de pôr um termo novo em `config.toml`, teste com `check --source gupy`. Estados da coleta presencial ficam em `sources.gupy.states`.
 - Fontes de vagas usam endpoints públicos sem documentação oficial (principalmente a Gupy, `portal.gupy.io/api/job-search/jobs`). Se uma fonte quebrar, rode `check --source nome` e leia o erro antes de mudar qualquer coisa.
 - Textos do painel e do e-mail em português, frases curtas, sem jargão.
 - O filtro do perfil existe em Python (`evaluate_profile` em `filters.py`) e em JS (`evaluate` em `docs/perfil.js`). Mudou um, mude o outro e rode `python tests/make_paridade.py`; o teste de paridade compara os dois.

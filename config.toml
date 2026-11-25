@@ -70,9 +70,10 @@ limit_param = "limit"
 offset_param = "offset"
 limit = 50
 pages = 2
-# Duas passadas por termo: só Bahia e só remotas (a Gupy lê "state" com o nome
-# completo do estado e "workplaceType" com remote/hybrid/on-site).
-variants = [ { state = "Bahia" }, { workplaceType = "remote" } ]
+# Estados onde buscar vagas presenciais e híbridas (sigla). As remotas vêm do Brasil todo.
+# Amigo de outro estado entrou? Acrescente a sigla dele aqui (cada estado = mais ~50 chamadas).
+states = ["BA"]
+remote = true
 terms = [
   "desenvolvedor junior",
   "desenvolvedor jr",
@@ -91,6 +92,20 @@ terms = [
   "qa junior",
   "devops junior",
   "seguranca da informacao junior",
+  # outros níveis e áreas (cada pessoa escolhe no perfil o que quer ver).
+  # A Gupy busca a frase exata: "estagio desenvolvimento" não acha nada, "estágio" acha tudo
+  # (o filtro descarta estágio que não é de TI). Teste novos termos com check --source gupy.
+  "estágio",
+  "estagiário",
+  "desenvolvedor pleno",
+  "desenvolvedor senior",
+  "analista de dados",
+  "analista de suporte",
+  "suporte técnico",
+  "técnico de suporte",
+  "técnico de ti",
+  "assistência técnica",
+  "infraestrutura",
 ]
 
 [sources.adzuna]
@@ -98,8 +113,10 @@ enabled = true                    # só roda se ADZUNA_APP_ID e ADZUNA_APP_KEY e
 country = "br"
 max_days_old = 14
 pages = 2
-terms = ["desenvolvedor junior", "programador junior", "desenvolvedor jr", "analista de dados junior", "qa junior", "devops junior", "trainee tecnologia"]
+terms = ["desenvolvedor junior", "programador junior", "desenvolvedor jr", "analista de dados junior", "qa junior", "devops junior", "trainee tecnologia",
+         "estagio desenvolvimento", "desenvolvedor pleno", "tecnico de informatica"]
 wheres = ["Salvador", ""]         # "Salvador" (raio abaixo) e "" = país todo, só remoto
+                                  # outro estado: acrescente uma cidade dele (a Adzuna busca por raio)
 distance_km = 50                  # raio em volta de Salvador (pega Lauro de Freitas, Camaçari...)
 
 [sources.greenhouse]
@@ -133,7 +150,7 @@ sites = [
   "https://nvidia.wd5.myworkdayjobs.com/NVIDIAExternalCareerSite",
   "https://adobe.wd5.myworkdayjobs.com/external_experienced",
 ]
-terms = ["junior", "trainee", "desenvolvedor", "entry level"]
+terms = ["junior", "trainee", "desenvolvedor", "entry level", "intern", "estagio"]
 location_keywords = ["brazil", "brasil", "remote", "remoto"]
 keep_multi_location = false       # vagas "2 Locations" são descartadas (podem não ser no Brasil)
 pages = 2

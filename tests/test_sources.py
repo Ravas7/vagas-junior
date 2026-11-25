@@ -254,3 +254,16 @@ def test_gupy_variantes(monkeypatch):
     gupy.fetch({"terms": ["dev"], "pages": 1, "delay": 0, "variants": [{"state": "Bahia"}, {"workplaceType": "remote"}]})
     assert [c[1].get("state") for c in f.calls] == ["Bahia", None]
     assert f.calls[1][1]["workplaceType"] == "remote" and all(c[1]["jobName"] == "dev" for c in f.calls)
+
+
+def test_gupy_estados_viram_variantes(monkeypatch):
+    calls = []
+    monkeypatch.setattr(gupy, "get_json", lambda url, params: calls.append(dict(params)) or [])
+    gupy.fetch({"terms": ["dev"], "pages": 1, "delay": 0, "states": ["BA", "pe"]})
+    assert [c.get("state") or c.get("workplaceType") for c in calls] == ["Bahia", "Pernambuco", "remote"]
+    assert gupy.build_variants([], remote=False) == [{}]
+
+
+def test_gupy_estado_invalido_vira_erro_da_fonte():
+    with pytest.raises(SourceError):
+        gupy.build_variants(["XX"])

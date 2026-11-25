@@ -221,3 +221,19 @@ def test_noticia_de_outro_estado_nao_vai_no_email():
     ba = Job(id="n:2", source="noticias", title="Empresa de Camaçari abre vagas de tecnologia para júnior",
              company="", url="u", tipo="noticia")
     assert classify(ba, CFG) and ba.padrao is True
+
+
+@pytest.mark.parametrize("title,subarea,nivel", [
+    ("Estagiário em TI (Feira de Santana - BA)", "infra", "estagio"),
+    ("Estágio em Governança de TI", "infra", "estagio"),
+    ("Estágio com ênfase em Banco de Dados", "dados", "estagio"),
+    ("Assistente de TI Júnior", "infra", "junior"),
+])
+def test_estagio_de_ti_generico_entra(title, subarea, nivel):
+    r = base(job(title))
+    assert (r.subarea, r.nivel) == (subarea, nivel)
+
+
+def test_ti_sem_nivel_e_assistencia_de_outra_area_ficam_de_fora():
+    assert not evaluate_base(job("Coordenação de TI"), CFG).accepted            # correlata sem nível
+    assert not evaluate_base(job("Estágio em Engenharia Civil - Assistência Técnica"), CFG).accepted
