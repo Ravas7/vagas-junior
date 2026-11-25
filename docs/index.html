@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="style.css">
+  <script>
+    // aplica o tema escolhido antes de desenhar a página, para não piscar
+    try { const t = localStorage.getItem("vagas-junior:tema:v1"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
 </head>
 <body>
   <header class="top">
@@ -26,89 +30,107 @@
   <div id="banner" class="banner" hidden></div>
 
   <div class="layout">
-    <aside class="filters" aria-label="Filtros">
-      <button class="filters-toggle" id="filters-toggle" aria-expanded="false" aria-controls="filters-body">Filtros</button>
-      <div class="filters-body" id="filters-body">
-        <label class="field">
-          <span>Buscar</span>
-          <input type="search" id="q" placeholder="python, react, empresa…" autocomplete="off">
-        </label>
-
-        <label class="field">
-          <span>Tipo</span>
-          <select id="tipo">
-            <option value="">Vagas e notícias</option>
-            <option value="vaga">Só vagas</option>
-            <option value="noticia">Só notícias de seleção</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>Área</span>
-          <select id="area">
-            <option value="">Dev, correlatas e suporte</option>
-            <option value="dev">Só desenvolvimento</option>
-            <option value="correlata">Só áreas correlatas (dados, QA, DevOps...)</option>
-            <option value="suporte">Só suporte técnico</option>
-          </select>
-        </label>
-
-        <label class="field">
-          <span>Local</span>
-          <select id="local">
-            <option value="">Salvador, remoto e exterior</option>
-            <option value="ssa">Só Salvador e região</option>
-            <option value="br">Só remoto (Brasil)</option>
-            <option value="exterior">Só remoto no exterior</option>
-          </select>
-        </label>
-
-        <fieldset class="field">
-          <legend>Modalidade</legend>
-          <label class="check"><input type="checkbox" name="wp" value="remoto"> Remoto</label>
-          <label class="check"><input type="checkbox" name="wp" value="hibrido"> Híbrido</label>
-          <label class="check"><input type="checkbox" name="wp" value="presencial"> Presencial</label>
-          <label class="check"><input type="checkbox" name="wp" value=""> Não informada</label>
-        </fieldset>
-
-        <label class="field">
-          <span>Estado</span>
-          <select id="uf"><option value="">Todos</option></select>
-        </label>
-
-        <label class="field">
-          <span>Fonte</span>
-          <select id="source"><option value="">Todas</option></select>
-        </label>
-
-        <label class="field">
-          <span>Ordenar por</span>
-          <select id="sort">
-            <option value="score">Mais relevantes</option>
-            <option value="recent">Mais recentes</option>
-          </select>
-        </label>
-
-        <fieldset class="field">
-          <legend>Exibir</legend>
-          <label class="check"><input type="checkbox" id="only-big"> Só grandes empresas e multinacionais</label>
-          <label class="check"><input type="checkbox" id="only-new"> Só as dos últimos 7 dias</label>
-          <label class="check"><input type="checkbox" id="show-closed"> Vagas encerradas</label>
-          <label class="check"><input type="checkbox" id="show-hidden"> Vagas ocultadas</label>
-        </fieldset>
-
-        <button class="link-btn" id="reset" type="button">Limpar filtros</button>
-      </div>
-    </aside>
-
     <main class="results">
       <div class="tabs" role="tablist" aria-label="Lista">
         <button role="tab" id="tab-all" data-tab="all" aria-selected="true">Todas <span class="count" id="count-all">0</span></button>
         <button role="tab" id="tab-saved" data-tab="saved" aria-selected="false">Salvas <span class="count" id="count-saved">0</span></button>
         <button role="tab" id="tab-applied" data-tab="applied" aria-selected="false">Candidaturas <span class="count" id="count-applied">0</span></button>
+        <div class="theme" role="group" aria-label="Tema">
+          <button type="button" data-theme-set="" aria-pressed="true" title="Segue o tema do seu aparelho">Automático</button>
+          <button type="button" data-theme-set="light" aria-pressed="false">Claro</button>
+          <button type="button" data-theme-set="dark" aria-pressed="false">Escuro</button>
+        </div>
       </div>
+
+      <section class="filters" aria-label="Filtros de pesquisa">
+        <div class="filters-bar">
+          <label class="search">
+            <span class="sr">Buscar</span>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="search" id="q" placeholder="Buscar: python, react, empresa…" autocomplete="off">
+          </label>
+          <button class="filters-toggle" id="filters-toggle" type="button" aria-expanded="false" aria-controls="filters-body">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            Filtros <span class="count" id="filters-count" hidden>0</span>
+            <svg class="chev" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="chips" id="chips" aria-label="Filtros ligados"></div>
+
+        <div class="filters-body" id="filters-body" hidden>
+          <div class="filters-grid">
+            <label class="field">
+              <span>Tipo</span>
+              <select id="tipo">
+                <option value="">Vagas e notícias</option>
+                <option value="vaga">Só vagas</option>
+                <option value="noticia">Só notícias de seleção</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Área</span>
+              <select id="area">
+                <option value="">Dev, correlatas e suporte</option>
+                <option value="dev">Só desenvolvimento</option>
+                <option value="correlata">Só áreas correlatas (dados, QA, DevOps...)</option>
+                <option value="suporte">Só suporte técnico</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Local</span>
+              <select id="local">
+                <option value="">Salvador, remoto e exterior</option>
+                <option value="ssa">Só Salvador e região</option>
+                <option value="br">Só remoto (Brasil)</option>
+                <option value="exterior">Só remoto no exterior</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>Estado</span>
+              <select id="uf"><option value="">Todos</option></select>
+            </label>
+
+            <label class="field">
+              <span>Fonte</span>
+              <select id="source"><option value="">Todas</option></select>
+            </label>
+
+            <label class="field">
+              <span>Ordenar por</span>
+              <select id="sort">
+                <option value="score">Mais relevantes</option>
+                <option value="recent">Mais recentes</option>
+              </select>
+            </label>
+
+            <fieldset class="field">
+              <legend>Modalidade</legend>
+              <label class="check"><input type="checkbox" name="wp" value="remoto"> Remoto</label>
+              <label class="check"><input type="checkbox" name="wp" value="hibrido"> Híbrido</label>
+              <label class="check"><input type="checkbox" name="wp" value="presencial"> Presencial</label>
+              <label class="check"><input type="checkbox" name="wp" value=""> Não informada</label>
+            </fieldset>
+
+            <fieldset class="field wide">
+              <legend>Exibir</legend>
+              <label class="check"><input type="checkbox" id="only-big"> Só grandes empresas e multinacionais</label>
+              <label class="check"><input type="checkbox" id="only-new"> Só as dos últimos 7 dias</label>
+              <label class="check"><input type="checkbox" id="show-closed"> Vagas encerradas</label>
+              <label class="check"><input type="checkbox" id="show-hidden"> Vagas ocultadas</label>
+            </fieldset>
+          </div>
+          <div class="filters-actions">
+            <button class="kb-btn small" id="reset" type="button">Limpar filtros</button>
+          </div>
+        </div>
+      </section>
+
+      <div class="kpis" id="kpis" role="group" aria-label="Resumo e filtros rápidos"></div>
+
       <section id="board" class="kb" aria-label="Candidaturas" hidden></section>
-      <p class="summary" id="summary" aria-live="polite"></p>
       <div id="list" class="list"></div>
       <footer class="foot" id="foot"></footer>
     </main>

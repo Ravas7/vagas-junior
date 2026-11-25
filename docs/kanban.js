@@ -35,7 +35,10 @@
     return n === 0 ? "hoje" : n === 1 ? "ontem" : `há ${n} dias`;
   };
 
-  function mount({ root, store, sync }) {
+  const norm = (s) => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+
+  // query: função que devolve as palavras da busca do painel (vazia = mostra tudo)
+  function mount({ root, store, sync, query = () => [] }) {
     const ui = { stage: "inscricao", menu: null, dragId: null };
     const dialog = h("dialog", { class: "kb-dialog" });
     document.body.append(dialog);
@@ -277,14 +280,21 @@
 
     /* ---------- tela ---------- */
     function render() {
-      const apps = store.all();
-      const active = apps.filter((a) => a.stage !== "encerrada").length;
-      const closed = apps.length - active;
+      const all = store.all();
+      const words = query();
+      const apps = words.length
+        ? all.filter((a) => { const hay = norm([a.title, a.company, a.location, a.note].join(" ")); return words.every((w) => hay.includes(w)); })
+        : all;
+      const active = all.filter((a) => a.stage !== "encerrada").length;
+      const closed = all.length - active;
+      const sub = !all.length ? "Nenhuma candidatura ainda. Marque uma vaga como candidatura ou adicione uma aqui."
+        : `${active} em andamento, ${closed} ${closed === 1 ? "encerrada" : "encerradas"}`
+          + (words.length ? `. A busca mostra ${apps.length} de ${all.length}.` : "");
       root.classList.remove("kb--dragging");
       root.replaceChildren(
         h("div", { class: "kb-head" },
           h("div", {}, h("h2", {}, "Minhas candidaturas"),
-            h("p", { class: "kb-sub" }, apps.length ? `${active} em andamento, ${closed} ${closed === 1 ? "encerrada" : "encerradas"}` : "Nenhuma candidatura ainda. Marque uma vaga como candidatura ou adicione uma aqui.")),
+            h("p", { class: "kb-sub" }, sub)),
           h("div", { class: "kb-tools" }, syncBox,
             h("button", { class: "kb-btn primary", type: "button", onclick: openAdd }, "Adicionar candidatura"))),
         h("div", { class: "kb-tabs", role: "group", "aria-label": "Etapas" }, C.STAGES.map((s) =>

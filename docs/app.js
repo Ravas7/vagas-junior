@@ -219,12 +219,11 @@
     $("#count-saved").textContent = base.filter((j) => state.status[j.id] === "saved").length;
     countApplied();
 
+    renderChips();
+    renderKpis(f, list);
+
     const box = $("#list");
     box.replaceChildren();
-    const newCount = list.filter((j) => isNew(j) && j.active).length;
-    $("#summary").textContent = list.length
-      ? `${list.length} ${list.length === 1 ? "resultado" : "resultados"}${newCount ? `, ${newCount} de hoje ou ontem` : ""}`
-      : "";
 
     if (!list.length) {
       const nothingYet = !state.jobs.length;
@@ -237,6 +236,80 @@
     } else {
       box.append(...list.map(jobRow));
     }
+  }
+
+  /* filtros ligados, mostrados como etiquetas com ×, para não esquecer que algo está filtrando */
+  function activeFilters() {
+    const optText = (sel) => $(sel).selectedOptions[0].textContent;
+    const out = [];
+    const q = $("#q").value.trim();
+    if (q) out.push({ label: `Busca: “${q}”`, search: true, clear: () => { $("#q").value = ""; } });
+    if (state.tab === "applied") return out;               // no quadro só a busca vale
+    for (const sel of ["#tipo", "#area", "#local", "#uf", "#source"]) {
+      if ($(sel).value) out.push({ label: (sel === "#uf" ? "Estado: " : sel === "#source" ? "Fonte: " : "") + optText(sel),
+        clear: () => { $(sel).value = ""; } });
+    }
+    $$('input[name="wp"]:checked').forEach((i) => out.push({
+      label: i.value ? WP[i.value] : "Modalidade não informada", clear: () => { i.checked = false; } }));
+    const checks = { "#only-big": "Só grandes empresas", "#only-new": "Últimos 7 dias",
+      "#show-closed": "Com encerradas", "#show-hidden": "Com ocultadas" };
+    for (const [sel, label] of Object.entries(checks)) {
+      if ($(sel).checked) out.push({ label, clear: () => { $(sel).checked = false; } });
+    }
+    if (state.day) out.push({ label: `Chegaram em ${dm(toDate(state.day))}`, clear: () => { state.day = null; renderPulse(); } });
+    return out;
+  }
+
+  function renderChips() {
+    const all = activeFilters();
+    const box = $("#chips");
+    box.replaceChildren(...all.map((c) => h("button", {
+      class: "chip", type: "button", "aria-label": `Tirar o filtro ${c.label}`,
+      onclick: () => { c.clear(); refresh(); },
+    }, c.label, h("span", { "aria-hidden": "true" }, "×"))));
+    if (all.length > 1) box.append(h("button", { class: "link-btn", type: "button", onclick: resetFilters }, "Limpar tudo"));
+    box.hidden = !all.length;
+    const n = all.filter((c) => !c.search).length;        // a busca já aparece na caixa, não conta aqui
+    $("#filters-count").textContent = n;
+    $("#filters-count").hidden = !n;
+  }
+
+  /* cartões de resumo: o primeiro só informa, os outros ligam e desligam um filtro rápido */
+  function renderKpis(f, list) {
+    const count = (extra) => state.jobs.filter((j) => matches(j, { ...f, ...extra })).length;
+    const remote = $('input[name="wp"][value="remoto"]');
+    const onlyRemote = remote.checked && f.wp.length === 1;
+    const newCount = list.filter((j) => isNew(j) && j.active).length;
+    const cards = [
+      { label: "Na lista", value: list.length, sub: newCount ? `${newCount} de hoje ou ontem` : "com os filtros atuais", tone: "main" },
+      { label: "Novas", value: count({ onlyNew: true }), sub: "chegaram nos últimos 7 dias", tone: "amber",
+        on: $("#only-new").checked, toggle: () => { $("#only-new").checked = !$("#only-new").checked; } },
+      { label: "Remotas", value: count({ wp: ["remoto"] }), sub: "trabalho de casa", tone: "teal",
+        on: onlyRemote, toggle: () => { $$('input[name="wp"]').forEach((i) => (i.checked = !onlyRemote && i === remote)); } },
+      { label: "Grandes empresas", value: count({ onlyBig: true }), sub: "e multinacionais", tone: "ink",
+        on: $("#only-big").checked, toggle: () => { $("#only-big").checked = !$("#only-big").checked; } },
+      { label: "Notícias", value: count({ tipo: "noticia" }), sub: "de processos seletivos", tone: "violet",
+        on: f.tipo === "noticia", toggle: () => { $("#tipo").value = f.tipo === "noticia" ? "" : "noticia"; } },
+    ];
+    $("#kpis").replaceChildren(...cards.map((c) => {
+      const body = [h("span", { class: "kpi-label" }, c.label), h("strong", {}, String(c.value)), h("small", {}, c.sub)];
+      return c.toggle
+        ? h("button", { class: `kpi tone-${c.tone}`, type: "button", "aria-pressed": String(!!c.on),
+            title: c.on ? "Clique para tirar este filtro" : "Clique para filtrar", onclick: () => { c.toggle(); refresh(); } }, ...body)
+        : h("div", { class: `kpi tone-${c.tone}`, "aria-live": "polite" }, ...body);
+    }));
+  }
+
+  function refresh() {
+    if (state.tab === "applied") { renderChips(); if (board) board.render(); }
+    else render();
+  }
+
+  function resetFilters() {
+    $("#q").value = ""; $("#uf").value = ""; $("#source").value = ""; $("#sort").value = "score";
+    $("#tipo").value = ""; $("#area").value = ""; $("#local").value = "";
+    $$('.filters input[type="checkbox"]').forEach((c) => (c.checked = false));
+    state.day = null; renderPulse(); refresh();
   }
 
   function renderHeader() {
@@ -269,18 +342,34 @@
   /* ---------- eventos ---------- */
   function bind() {
     ["#q", "#uf", "#source", "#sort", "#tipo", "#area", "#local", "#only-big", "#only-new", "#show-closed", "#show-hidden"].forEach((s) =>
-      $(s).addEventListener(s === "#q" ? "input" : "change", render));
-    $$('input[name="wp"]').forEach((i) => i.addEventListener("change", render));
-    $$(".tabs button").forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
-    $("#reset").addEventListener("click", () => {
-      $("#q").value = ""; $("#uf").value = ""; $("#source").value = ""; $("#sort").value = "score";
-      $("#tipo").value = ""; $("#area").value = ""; $("#local").value = "";
-      $$('input[type="checkbox"]').forEach((c) => (c.checked = false));
-      state.day = null; renderPulse(); render();
-    });
+      $(s).addEventListener(s === "#q" ? "input" : "change", refresh));
+    $$('input[name="wp"]').forEach((i) => i.addEventListener("change", refresh));
+    $$('.tabs [role="tab"]').forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+    bindTheme();
+    $("#reset").addEventListener("click", resetFilters);
     const toggle = $("#filters-toggle");
-    toggle.addEventListener("click", () =>
-      toggle.setAttribute("aria-expanded", String(toggle.getAttribute("aria-expanded") !== "true")));
+    toggle.addEventListener("click", () => {
+      const open = toggle.getAttribute("aria-expanded") !== "true";
+      toggle.setAttribute("aria-expanded", String(open));
+      $("#filters-body").hidden = !open;
+    });
+  }
+
+  /* tema: "" segue o aparelho; "light" ou "dark" fica gravado neste navegador */
+  const THEME = "vagas-junior:tema:v1";
+  function bindTheme() {
+    const paint = () => {
+      const cur = document.documentElement.dataset.theme || "";
+      $$("[data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === cur)));
+    };
+    $$("[data-theme-set]").forEach((b) => b.addEventListener("click", () => {
+      const t = b.dataset.themeSet;
+      if (t) document.documentElement.dataset.theme = t;
+      else delete document.documentElement.dataset.theme;
+      try { t ? localStorage.setItem(THEME, t) : localStorage.removeItem(THEME); } catch { /* modo privado */ }
+      paint();
+    }));
+    paint();
   }
 
   /* ---------- candidaturas (quadro) ---------- */
@@ -291,23 +380,27 @@
       workplace: job.workplace, grande: job.grande, stage: "inscricao" });
   }
 
+  /* trocar de aba só troca o conteúdo de baixo: abas e busca ficam no mesmo lugar */
   function showTab(tab) {
     state.tab = tab;
-    $$(".tabs button").forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === tab)));
-    const board = tab === "applied";
-    $("#board").hidden = !board;
-    $("#list").hidden = board;
-    $("#summary").hidden = board;
-    $(".layout").classList.toggle("board-mode", board);
-    if (!board) render();
-    window.scrollTo({ top: 0 });
+    $$('.tabs [role="tab"]').forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === tab)));
+    const isBoard = tab === "applied";
+    $("#board").hidden = !isBoard;
+    $("#list").hidden = isBoard;
+    $("#kpis").hidden = isBoard;
+    $(".filters").classList.toggle("board-mode", isBoard);
+    $("#q").placeholder = isBoard ? "Buscar candidatura: vaga ou empresa…" : "Buscar: python, react, empresa…";
+    refresh();
   }
+
+  let board = null;
 
   load().then(() => {
     state.status = store.migrateLegacy(state.status, Object.fromEntries(state.jobs.map((j) => [j.id, j])));
     writeStatus();
     fillSelects(); bind(); renderHeader(); renderPulse(); render();
-    window.Kanban.mount({ root: $("#board"), store, sync: window.Sync });
+    board = window.Kanban.mount({ root: $("#board"), store, sync: window.Sync,
+      query: () => norm($("#q").value).split(/\s+/).filter(Boolean) });
     store.subscribe(() => { countApplied(); if (state.tab !== "applied") render(); });
     window.Sync.init(store);
     countApplied();
