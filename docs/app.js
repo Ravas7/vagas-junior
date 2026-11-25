@@ -345,7 +345,6 @@
       $(s).addEventListener(s === "#q" ? "input" : "change", refresh));
     $$('input[name="wp"]').forEach((i) => i.addEventListener("change", refresh));
     $$('.tabs [role="tab"]').forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
-    bindTheme();
     $("#reset").addEventListener("click", resetFilters);
     const toggle = $("#filters-toggle");
     toggle.addEventListener("click", () => {
@@ -395,6 +394,9 @@
 
   let board = null;
 
+  bindTheme();                 // já vale na tela de entrada, antes das vagas carregarem
+  window.Sync.init(store);     // o login começa junto com o download das vagas
+
   load().then(() => {
     state.status = store.migrateLegacy(state.status, Object.fromEntries(state.jobs.map((j) => [j.id, j])));
     writeStatus();
@@ -402,7 +404,6 @@
     board = window.Kanban.mount({ root: $("#board"), store, sync: window.Sync,
       query: () => norm($("#q").value).split(/\s+/).filter(Boolean) });
     store.subscribe(() => { countApplied(); if (state.tab !== "applied") render(); });
-    window.Sync.init(store);
     countApplied();
   });
 })();
