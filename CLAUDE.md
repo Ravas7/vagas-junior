@@ -73,6 +73,9 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 4. Sincronizar vagas salvas e ocultas.
 5. Confirmar por que duas vagas da Gupy aparecem com a empresa "ADMINISTRADOR DE REDES".
 
-## Não testado ao vivo
+## Firebase (ligado)
 
-A sincronização com Firebase foi escrita sem acesso ao servidor. Se der erro ao entrar, leia a mensagem no quadro e o passo 9 do README.
+- Projeto `app-vagas-89a57`, plano Spark. Login com Google, Firestore em `southamerica-east1`.
+- Domínios autorizados: `localhost` e `ravas7.github.io`.
+- Testado ao vivo em 24/11/2026 pelo `localhost`: login e gravação em `users/{uid}/candidaturas` funcionaram.
+- Se der erro ao entrar, leia a mensagem no quadro e o passo 9 do README.
