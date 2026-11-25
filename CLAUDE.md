@@ -40,7 +40,7 @@ tests/             pytest (Python) e node:test (store.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 151 testes, todos offline
+python -m pytest -q                  # 152 testes, todos offline
 node --test tests/store.test.js      # 18 testes do quadro (Node 20+)
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só

@@ -44,9 +44,16 @@ def test_execucao_completa(monkeypatch, tmp_path):
     assert "<script>" not in html and "A&amp;B" in html          # HTML escapado
 
     saved = json.loads((tmp_path / "jobs.json").read_text(encoding="utf-8"))
-    assert saved["meta"]["active"] == 2 and saved["meta"]["sources"]["gupy"]["ok"] is True
-    assert all(j["notified"] for j in saved["jobs"])
+    # o sênior fica guardado para quem quiser sênior, mas fora do perfil padrão e do e-mail
+    assert saved["meta"]["active"] == 3 and saved["meta"]["sources"]["gupy"]["ok"] is True
+    by_title = {j["title"]: j for j in saved["jobs"]}
+    senior = by_title["Desenvolvedor Java Sênior"]
+    assert senior["nivel"] == "senior" and senior["padrao"] is False and not senior["notified"]
+    assert "Desenvolvedor Java Sênior" not in html
+    assert all(j["notified"] for j in saved["jobs"] if j["padrao"])
+    assert "Analista Financeiro Jr" not in by_title                 # não é TI: nem guarda
     assert "description" not in saved["jobs"][0]
+    assert saved["meta"]["perfil_padrao"]["niveis"] == ["junior"]
 
     # segunda execução: nada novo, nenhum e-mail
     assert runner.run(cfg) == 0

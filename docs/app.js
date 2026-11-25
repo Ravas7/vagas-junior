@@ -78,7 +78,10 @@
     if (!data.jobs.length) {
       try { data = await get("data/jobs.sample.json"); state.sample = true; } catch (e) { console.warn(e); }
     }
-    state.jobs = data.jobs;
+    // O arquivo traz tudo que passou na base (estágio, pleno, sênior, hardware...).
+    // Por enquanto o painel mostra só o perfil padrão; o filtro por perfil vem depois.
+    state.allJobs = data.jobs;
+    state.jobs = data.jobs.filter((j) => j.padrao !== false);
     state.meta = data.meta || {};
     state.now = state.sample ? new Date("2026-11-23T15:00:00-03:00") : new Date();
   }

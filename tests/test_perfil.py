@@ -138,3 +138,20 @@ def test_nota_minima_do_perfil():
     j = job("Desenvolvedor Full Stack", "Vaga para júnior")             # 20 + 20 + 10 remoto
     assert com_perfil(j).score == 50
     assert not com_perfil(j, nota_minima=60).accepted
+
+
+def test_classify_grava_os_fatos_para_o_painel():
+    from vagas.filters import classify
+    j = job("Desenvolvedor Python Pleno", "Experiência com Django, React e AWS. 3 anos de experiência.",
+            workplace="hibrido", location="Recife, PE", uf="PE")
+    assert classify(j, CFG)                                            # passou na base: vai pro arquivo
+    assert j.padrao is False                                           # mas não no seu perfil
+    assert (j.nivel, j.area, j.subarea, j.years, j.city) == ("pleno", "dev", "dev", 3, "Recife")
+    assert j.techs == ["Python", "React", "Cloud (AWS/Azure/GCP)"]
+
+    dados = job("Engenheiro de Dados Jr", "SQL e Power BI")
+    assert classify(dados, CFG) and dados.padrao
+    assert (dados.area, dados.subarea, dados.nivel) == ("correlata", "dados", "junior")
+    assert "SQL" in dados.techs and "Power BI" in dados.techs
+
+    assert not classify(job("Vendedor Júnior"), CFG)                  # não é TI: fica de fora

@@ -40,17 +40,48 @@ DEV_TERMS = [
 ]
 # Áreas correlatas. Suporte técnico e service desk ficam de fora de propósito
 # (quem quer sair do suporte não quer essas vagas); ligue com related_terms_extra.
-RELATED_TERMS = [
-    "analista de dados", "engenheiro de dados", "engenheira de dados", "cientista de dados",
-    "data analyst", "data engineer", "data scientist", "business intelligence", "power bi",
-    "machine learning", "inteligencia artificial", "analista de bi",
-    "qa", "quality assurance", "analista de qualidade de software", "analista de testes",
-    "engenheiro de qualidade", "tester", "test engineer", "sdet",
-    "devops", "sre", "cloud", "engenheiro de nuvem", "analista de nuvem",
-    "seguranca da informacao", "ciberseguranca", "cybersecurity", "analista de seguranca",
-    "analista de infraestrutura", "infraestrutura de ti", "analista de redes",
-    "analista de ti", "analista de tecnologia",
-]
+# Agrupadas por subárea (o perfil pode escolher só dados, só QA...).
+RELATED_GROUPS = {
+    "dados": ["analista de dados", "engenheiro de dados", "engenheira de dados", "cientista de dados",
+              "data analyst", "data engineer", "data scientist", "business intelligence", "power bi",
+              "machine learning", "inteligencia artificial", "analista de bi"],
+    "qa": ["qa", "quality assurance", "analista de qualidade de software", "analista de testes",
+           "engenheiro de qualidade", "tester", "test engineer", "sdet"],
+    "devops": ["devops", "sre", "cloud", "engenheiro de nuvem", "analista de nuvem"],
+    "seguranca": ["seguranca da informacao", "ciberseguranca", "cybersecurity", "analista de seguranca"],
+    "infra": ["analista de infraestrutura", "infraestrutura de ti", "analista de redes",
+              "analista de ti", "analista de tecnologia"],
+}
+RELATED_TERMS = [t for terms in RELATED_GROUPS.values() for t in terms]
+
+# Tecnologias que aparecem como etiqueta e que o perfil pode exigir.
+# Nome mostrado -> termos procurados no título e na descrição (já sem acento).
+TECH_TERMS = {
+    "Python": ["python", "django", "flask", "fastapi"],
+    "Java": ["java", "spring", "spring boot"],
+    "JavaScript": ["javascript", "js"],
+    "TypeScript": ["typescript"],
+    "React": ["react", "reactjs", "react.js", "next.js", "nextjs"],
+    "React Native": ["react native"],
+    "Angular": ["angular"],
+    "Vue": ["vue", "vuejs", "vue.js", "nuxt"],
+    "Node.js": ["node", "nodejs", "node.js", "nestjs"],
+    ".NET / C#": [".net", "dotnet", "c#", "asp.net"],
+    "PHP": ["php", "laravel"],
+    "Go": ["golang"],
+    "Ruby": ["ruby", "rails"],
+    "Kotlin": ["kotlin"],
+    "Swift / iOS": ["swift", "ios"],
+    "Android": ["android"],
+    "Flutter": ["flutter", "dart"],
+    "SQL": ["sql", "mysql", "postgresql", "postgres", "sql server"],
+    "Power BI": ["power bi", "powerbi"],
+    "Cloud (AWS/Azure/GCP)": ["aws", "azure", "gcp", "google cloud"],
+    "Docker / Kubernetes": ["docker", "kubernetes", "k8s"],
+    "Linux": ["linux"],
+    "Redes": ["redes de computadores", "tcp/ip", "ccna", "roteadores", "switches"],
+    "Hardware": ["hardware", "manutencao de computadores", "manutencao de notebooks"],
+}
 # Suporte técnico: só entra com salário informado igual ou acima de support_min_salary.
 SUPPORT_TERMS = [
     "suporte tecnico", "analista de suporte", "tecnico de suporte", "suporte n1", "suporte n2",
@@ -177,6 +208,7 @@ class Result:
     junior_desc: bool = False    # "júnior" só na descrição
     pouca_exp: bool = False      # júnior no título e "sem experiência" na descrição
     years: int = 0               # anos de experiência pedidos (0 = não diz)
+    subarea: str = ""            # dev | dados | qa | devops | seguranca | infra | suporte | hardware
 
 
 NIVEIS = ["estagio", "junior", "pleno", "senior"]
@@ -217,6 +249,27 @@ def age_days(job: Job) -> int | None:
     except ValueError:
         return None
     return (datetime.now(timezone.utc).date() - posted).days
+
+
+def related_group(title_norm: str) -> str:
+    """Subárea de uma vaga de área correlata (dados, qa, devops, seguranca, infra)."""
+    for group, terms in RELATED_GROUPS.items():
+        if find_term(title_norm, terms):
+            return group
+    return "correlata"              # termo extra do config.toml, sem grupo
+
+
+def find_techs(text: str) -> list[str]:
+    """Tecnologias citadas no texto, na ordem de TECH_TERMS."""
+    t = norm(text)
+    return [name for name, terms in TECH_TERMS.items() if find_term(t, terms)]
+
+
+def city_of(job: Job) -> str:
+    """Cidade da vaga quando o local vem como "Cidade, UF"."""
+    if not job.uf or job.workplace == "remoto" or "," not in job.location:
+        return ""
+    return job.location.split(",")[0].strip()
 
 
 def job_level(title_norm: str, kind_norm: str, junior_terms: list[str]) -> tuple[str, bool]:
@@ -360,6 +413,7 @@ def evaluate_base(job: Job, cfg: dict) -> Result:
     else:
         return Result(False, 0, ["sem termo de dev, área correlata, suporte ou hardware no título"])
 
+    subarea = area if area != "correlata" else related_group(title)
     nivel, junior_title = job_level(title, kind, junior_terms)
     if area == "correlata" and not nivel:
         return Result(False, 0, ["área correlata sem nível no título"], area)
@@ -373,6 +427,7 @@ def evaluate_base(job: Job, cfg: dict) -> Result:
         junior_desc=not junior_title and bool(find_term(desc, junior_terms)),
         pouca_exp=junior_title and bool(find_term(desc, ["sem experiencia", "recem formado", "primeiro emprego"])),
         years=required_years(desc),
+        subarea=subarea,
     )
 
 
@@ -385,7 +440,8 @@ def evaluate_profile(job: Job, base: Result, perfil: dict) -> Result:
     area, nivel, english = base.area, base.nivel, base.english
     niveis = perfil.get("niveis", ["junior"])
     facts = dict(area=area, english=english, nivel=nivel, junior_title=base.junior_title,
-                 junior_desc=base.junior_desc, pouca_exp=base.pouca_exp, years=base.years)
+                 junior_desc=base.junior_desc, pouca_exp=base.pouca_exp, years=base.years,
+                 subarea=base.subarea)
 
     def rejected(why: str, abroad: bool = base.abroad) -> Result:
         return Result(False, 0, [why], abroad=abroad, **facts)
@@ -513,6 +569,47 @@ def evaluate_news(job: Job, cfg: dict) -> Result:
     if not accepted:
         reasons.append("nota abaixo do mínimo")
     return Result(accepted, score, reasons, area)
+
+
+def _prepare(job: Job, cfg: dict) -> None:
+    """Marca grande empresa e acha o salário na descrição."""
+    if job.tipo == "noticia":
+        name = big_company(job.title, cfg)
+        job.grande = bool(name)
+        job.company = name or "Empresa não identificada"
+    else:
+        job.grande = bool(big_company(job.company, cfg))
+        if not job.salary:
+            job.salary = extract_salary(f"{job.description} {job.snippet}")
+
+
+def classify(job: Job, cfg: dict) -> bool:
+    """Avalia a vaga para guardar no jobs.json. Devolve True se passou na BASE.
+
+    Grava na vaga os fatos que o painel usa para filtrar pelo perfil de cada pessoa
+    (nível, subárea, tecnologias, anos...) e o resultado no perfil padrão
+    (padrao, score, reasons), que é o que o e-mail usa.
+    """
+    _prepare(job, cfg)
+    if job.tipo == "noticia":
+        result = evaluate_news(job, cfg)
+        job.score, job.reasons, job.area = result.score, result.reasons, result.area
+        job.subarea, job.padrao = result.area, result.accepted
+        return result.accepted
+
+    base = evaluate_base(job, cfg)
+    if not base.accepted:
+        job.score, job.reasons, job.padrao = 0, base.reasons, False
+        return False
+    result = evaluate_profile(job, base, profile_from_config(cfg))
+    job.score, job.reasons, job.padrao = result.score, result.reasons, result.accepted
+    job.area, job.subarea, job.nivel = base.area, base.subarea, base.nivel
+    job.english, job.abroad = base.english, base.abroad
+    job.years, job.junior_title, job.junior_desc, job.pouca_exp = (
+        base.years, base.junior_title, base.junior_desc, base.pouca_exp)
+    job.techs = find_techs(f"{job.title} {job.description or job.snippet}")
+    job.city = city_of(job)
+    return True
 
 
 def apply(job: Job, cfg: dict) -> bool:

@@ -94,8 +94,10 @@ def run(cfg: dict, send_email: bool = True) -> int:
         log("Nenhuma fonte respondeu. Nada foi salvo.")
         return 1
 
-    accepted = [j for j in raw if filters.apply(j, fcfg)]
-    log(f"{len(raw)} coletadas, {len(accepted)} passaram no filtro de júnior")
+    # guarda tudo que passou na base; o painel filtra pelo perfil de cada pessoa
+    accepted = [j for j in raw if filters.classify(j, fcfg)]
+    n_padrao = sum(1 for j in accepted if j.padrao)
+    log(f"{len(raw)} coletadas, {len(accepted)} passaram na base, {n_padrao} no seu perfil (config.toml)")
 
     existing = storage.load(path)
     jobs, new = storage.merge(existing, accepted, ok_sources, today,
@@ -105,7 +107,8 @@ def run(cfg: dict, send_email: bool = True) -> int:
 
     # --- e-mail: todas as vagas ativas ainda não avisadas ---
     pending = sorted(
-        (j for j in jobs.values() if j.active and not j.notified and j.score >= ecfg.get("min_score", 0)),
+        (j for j in jobs.values()
+         if j.active and j.padrao and not j.notified and j.score >= ecfg.get("min_score", 0)),
         key=lambda j: (j.score, j.first_seen), reverse=True,
     )
     if send_email and ecfg.get("enabled", True) and (pending or ecfg.get("send_when_empty", False)):
@@ -135,6 +138,7 @@ def run(cfg: dict, send_email: bool = True) -> int:
         "updated_at": now.isoformat(timespec="seconds"),
         "sources": status,
         "active": sum(1 for j in jobs.values() if j.active),
+        "perfil_padrao": filters.profile_from_config(fcfg),   # o painel usa para preencher o perfil
     }
     storage.save(path, jobs, meta)
     log(f"Salvo em {path}: {meta['active']} vagas ativas")
@@ -149,9 +153,12 @@ def check(cfg: dict, only: str | None = None, show: int = 5) -> int:
         flag = {True: "OK", False: "FALHOU", None: "IGNORADA"}[s["ok"]]
         log(f"\n== {name}: {flag} ({s['count']} vagas) {s['error']}")
     accepted, rejected = [], []
+    in_base = 0
     for j in raw:
-        (accepted if filters.apply(j, fcfg) else rejected).append(j)
-    log(f"\nTotal: {len(raw)} coletadas, {len(accepted)} aceitas, {len(rejected)} descartadas\n")
+        in_base += filters.classify(j, fcfg)
+        (accepted if j.padrao else rejected).append(j)
+    log(f"\nTotal: {len(raw)} coletadas, {len(accepted)} aceitas no seu perfil, {len(rejected)} descartadas")
+    log(f"O painel recebe {in_base} que passaram na base (para quem tem outro perfil).\n")
     log("Exemplos ACEITOS:")
     for j in sorted(accepted, key=lambda x: -x.score)[:show]:
         log(f"  [{j.score}] ({j.tipo}/{j.area}) {j.title} | {j.company} | {j.location or '-'} | {', '.join(j.reasons)}")
