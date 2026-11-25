@@ -72,6 +72,14 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 3. Fonte de vagas remotas do exterior (quadros globais).
 4. Sincronizar vagas salvas e ocultas.
 5. Confirmar por que duas vagas da Gupy aparecem com a empresa "ADMINISTRADOR DE REDES".
+6. Abrir para amigos testarem (uso real, não venda). Fazer em etapas e com plano aprovado antes:
+   - Perfil por pessoa no Firestore (cidade, remoto, tecnologias, salário mínimo).
+   - Robô coleta mais amplo; cada pessoa filtra no painel pelo próprio perfil.
+   - Regras do Firestore liberam uma lista de e-mails convidados (hoje só o meu).
+   - Cadastro com e-mail e senha, além do Google.
+   - Aviso de vagas novas por pessoa (navegador ou Telegram; e-mail em massa é mais caro).
+   - Painel instalável no celular (PWA).
+   - Página curta sobre quais dados são guardados e como apagar a conta.
 
 ## Firebase (ligado)
 
