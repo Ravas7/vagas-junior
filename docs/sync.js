@@ -13,7 +13,7 @@
     status: { mode: "local", user: null, message: "" },   // local | signed-out | connecting | synced | error
     configured: false,
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
-    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage,
+    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile,
   };
   window.Sync = Sync;
 
@@ -89,7 +89,7 @@
     user = u;
     if (!u) { col = null; set({ mode: "signed-out", user: null, message: "" }); return; }
 
-    set({ mode: "connecting", user: { email: u.email || "", name: u.displayName || "" }, message: "" });
+    set({ mode: "connecting", user: { uid: u.uid, email: u.email || "", name: u.displayName || "" }, message: "" });
     col = fb.fs.collection(db, "users", u.uid, "candidaturas");
     unsub = fb.fs.onSnapshot(col, (snap) => {
       const remote = snap.docs.map((d) => d.data());
@@ -130,8 +130,24 @@
     const cred = await fb.au.createUserWithEmailAndPassword(auth, email, password);
     if (name) {
       await fb.au.updateProfile(cred.user, { displayName: name });
-      set({ user: { email: cred.user.email || email, name } });
+      set({ user: { uid: cred.user.uid, email: cred.user.email || email, name } });
     }
+  }
+
+  /* Perfil: um documento só, em users/{uid}/perfil/atual. null = ainda não tem. */
+  const profileRef = () => (user && db ? fb.fs.doc(db, "users", user.uid, "perfil", "atual") : null);
+
+  async function loadProfile() {
+    const ref = profileRef();
+    if (!ref) return null;
+    const snap = await fb.fs.getDoc(ref);
+    return snap.exists() ? snap.data() : null;
+  }
+
+  async function saveProfile(profile) {
+    const ref = profileRef();
+    if (!ref) throw { code: "auth/network-request-failed" };
+    await fb.fs.setDoc(ref, JSON.parse(JSON.stringify(profile)));
   }
 
   async function resetPassword(email) {

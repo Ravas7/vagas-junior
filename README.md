@@ -157,7 +157,7 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
-       match /users/{uid}/candidaturas/{id} {
+       match /users/{uid}/{document=**} {
          allow read, write: if request.auth != null
                             && request.auth.uid == uid
                             && request.auth.token.email == 'SEU_EMAIL';
@@ -170,7 +170,9 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
 
 > O login esconde a tela, mas o arquivo `data/jobs.json` continua público no GitHub Pages. Não coloque nada secreto nele.
 
-Os dados ficam em `users/{seu-uid}/candidaturas`. Se dois aparelhos mexerem no mesmo cartão, vale a alteração mais recente. Sem internet nada se perde: o que mudou é enviado quando voltar. Vagas salvas e ocultas ainda ficam só no navegador.
+Os dados ficam em `users/{seu-uid}/candidaturas` e o perfil em `users/{seu-uid}/perfil/atual`. Se dois aparelhos mexerem no mesmo cartão, vale a alteração mais recente. Sem internet nada se perde: o que mudou é enviado quando voltar. Vagas salvas e ocultas ainda ficam só no navegador.
+
+**Perfil:** no primeiro login abre a janela **Monte seu perfil** (níveis, áreas, onde, experiência, salário de suporte e tecnologias). Depois, mude em **Meu perfil**, no topo. O formulário começa com os critérios do `config.toml`, lidos de `docs/perfil-padrao.json`. Mudou o `[filter]` do config? Rode `python -m vagas perfil` e faça o commit desse arquivo (um teste avisa se esquecer).
 
 > A sincronização foi escrita seguindo a documentação do Firebase 10, mas só pôde ser testada sem o servidor (o ambiente de desenvolvimento não tem acesso a ele). Se aparecer erro ao entrar, a mensagem no quadro diz o motivo; o mais comum é domínio não autorizado ou regras ainda não publicadas.
 

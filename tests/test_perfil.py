@@ -155,3 +155,31 @@ def test_classify_grava_os_fatos_para_o_painel():
     assert "SQL" in dados.techs and "Power BI" in dados.techs
 
     assert not classify(job("Vendedor Júnior"), CFG)                  # não é TI: fica de fora
+
+
+def test_perfil_padrao_json_esta_em_dia():
+    """docs/perfil-padrao.json precisa bater com o config.toml (rode: python -m vagas perfil)."""
+    from pathlib import Path
+    from vagas import runner
+    cfg = runner.load_config("config.toml")
+    atual = Path("docs/perfil-padrao.json").read_text(encoding="utf-8")
+    assert atual.replace("\r\n", "\n") == runner.profile_json(cfg), "rode: python -m vagas perfil"
+
+
+def test_perfil_de_amigo_estado_so_remoto_e_tecnologias():
+    recife = job("Desenvolvedor Jr", "Vaga com React", workplace="presencial", location="Recife, PE", uf="PE")
+    recife.techs = ["React"]
+    amigo = dict(cidades=[], regiao_nome="", estado="PE")
+    r = com_perfil(recife, **amigo)
+    assert r.accepted and "seu estado (PE)" in r.reasons
+    assert not com_perfil(recife, **amigo, presencial=False).accepted            # só remoto
+    r = com_perfil(recife, **amigo, tecnologias=["React", "Python"])
+    assert "sua tecnologia: React" in r.reasons and r.score == com_perfil(recife, **amigo).score + 10
+    assert not com_perfil(recife, **amigo, tecnologias=["Python"], so_minhas_techs=True).accepted
+
+
+def test_areas_finas_do_perfil():
+    dados, qa = job("Analista de Dados Jr"), job("QA Júnior")
+    assert com_perfil(dados, areas=["dados"]).accepted
+    assert not com_perfil(qa, areas=["dados"]).accepted
+    assert com_perfil(qa, areas=["correlata"]).accepted                          # o grupo todo

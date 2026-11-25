@@ -33,18 +33,21 @@ docs/              painel em HTML, CSS e JS puro (sem build)
   kanban.js        tela do quadro (arrastar, menu, folha no celular)
   sync.js          login e sincronização com Firebase
   login.js         tela de entrada (login obrigatório quando o Firebase está ligado)
-tests/             pytest (Python) e node:test (store.js)
+  perfil.js        regras do perfil e janela "Meu perfil" (salva em users/{uid}/perfil/atual)
+  perfil-padrao.json  perfil do config.toml e opções do formulário (python -m vagas perfil)
+tests/             pytest (Python) e node:test (store.js, perfil.js)
 .github/workflows/ agendamento
 ```
 
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 152 testes, todos offline
-node --test tests/store.test.js      # 18 testes do quadro (Node 20+)
+python -m pytest -q                  # 155 testes, todos offline
+node --test tests/store.test.js tests/perfil.test.js   # 23 testes do quadro e do perfil (Node 20+)
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só
 python -m vagas run                  # coleta de verdade, salva e envia e-mail
+python -m vagas perfil               # regrava docs/perfil-padrao.json depois de mudar o [filter]
 ```
 
 Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para mudanças visuais em `docs/`, abra `docs/index.html` por um servidor local (`python -m http.server -d docs 8000`) e confira no navegador, no tamanho de computador e de celular (390px).

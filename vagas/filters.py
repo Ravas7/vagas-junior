@@ -251,6 +251,28 @@ def age_days(job: Job) -> int | None:
     return (datetime.now(timezone.utc).date() - posted).days
 
 
+SUBAREA_NOME = {
+    "dev": "Desenvolvimento", "dados": "Dados e BI", "qa": "QA e testes", "devops": "DevOps e cloud",
+    "seguranca": "Segurança da informação", "infra": "Infraestrutura e redes",
+    "suporte": "Suporte técnico", "hardware": "Hardware e assistência técnica",
+}
+
+
+def profile_options(cfg: dict) -> dict:
+    """O que o formulário de perfil do painel precisa: o perfil padrão e as opções.
+
+    Gravado em docs/perfil-padrao.json pelo comando `python -m vagas perfil`.
+    """
+    return {
+        "perfil": profile_from_config(cfg),
+        "niveis": [{"id": n, "nome": NIVEL_NOME[n]} for n in NIVEIS],
+        "areas": [{"id": a, "nome": nome} for a, nome in SUBAREA_NOME.items()],
+        "correlatas": list(RELATED_GROUPS),          # "correlata" no config = estas subáreas
+        "tecnologias": list(TECH_TERMS),
+        "cidades_padrao": list(RMS_CITIES),
+    }
+
+
 def related_group(title_norm: str) -> str:
     """Subárea de uma vaga de área correlata (dados, qa, devops, seguranca, infra)."""
     for group, terms in RELATED_GROUPS.items():
@@ -306,6 +328,11 @@ PROFILE_DEFAULTS = {
     "anos_max": 2,                  # pede mais anos que isso: descarta (0 = sem limite)
     "suporte_salario_min": 3200,
     "suporte_sem_salario": False,   # True = mostra suporte sem salário informado
+    "estado": "",                   # UF; sem cidades, aceita o estado inteiro
+    "presencial": True,             # False = só remoto
+    "tecnologias": [],              # nomes de TECH_TERMS; dão +10 de nota
+    "so_minhas_techs": False,       # True = só vagas que citam uma das tecnologias
+    "bonus_tecnologia": 10,
     "estados_preferidos": [],       # +10 de nota
     "bonus_remoto": 10,
     "bonus_grande": 10,
@@ -358,12 +385,18 @@ def location_check(job: Job, perfil: dict) -> tuple[bool, str]:
                 return False, f"remoto restrito a outro país ({job.location})"
             return True, "remoto no exterior"
         return True, "remoto"
+    if not perfil.get("presencial", True):              # só remoto
+        return False, f"não é remota ({job.location or 'local não informado'})"
     cities = [norm(c) for c in perfil.get("cidades", [])]
     if cities and (find_term(loc, cities) or find_term(not_ssa(job.title), cities)):
         return True, f"região de {regiao}" if regiao else "sua região"
+    estado = (perfil.get("estado") or "").upper()
+    if not cities and estado and job.uf == estado:      # sem cidades: vale o estado inteiro
+        return True, f"região de {regiao}" if regiao else f"seu estado ({estado})"
     if not loc and perfil.get("local_desconhecido", False):
         return True, "local não informado"
-    fora = f"fora de {regiao} e região" if regiao else "fora das suas cidades"
+    fora = (f"fora de {regiao} e região" if regiao
+            else f"fora de {estado}" if estado and not cities else "fora das suas cidades")
     return False, f"{fora} ({job.location or 'local não informado'})"
 
 
@@ -446,8 +479,13 @@ def evaluate_profile(job: Job, base: Result, perfil: dict) -> Result:
     def rejected(why: str, abroad: bool = base.abroad) -> Result:
         return Result(False, 0, [why], abroad=abroad, **facts)
 
-    if area not in perfil.get("areas", ["dev", "correlata", "suporte"]):
+    areas = perfil.get("areas", ["dev", "correlata", "suporte"])
+    if area not in areas and base.subarea not in areas:     # aceita "correlata" ou só "dados", "qa"...
         return rejected(f"{AREA_NOME[area]} fora do perfil")
+    minhas = {t for t in perfil.get("tecnologias", [])}
+    comuns = [t for t in job.techs if t in minhas]
+    if minhas and perfil.get("so_minhas_techs", False) and not comuns:
+        return rejected("não cita suas tecnologias")
     if not level_check(area, nivel, niveis):
         return rejected(f"nível {NIVEL_NOME.get(nivel, 'não informado')} fora do perfil"
                         if nivel else "nível não informado (perfil só de estágio)")
@@ -501,10 +539,13 @@ def evaluate_profile(job: Job, base: Result, perfil: dict) -> Result:
     if job.grande:
         score += perfil.get("bonus_grande", 10)
         reasons.append("grande empresa")
+    if comuns:
+        score += perfil.get("bonus_tecnologia", 10)
+        reasons.append("sua tecnologia: " + ", ".join(comuns))
     if job.workplace == "remoto":
         score += perfil.get("bonus_remoto", 10)
         reasons.append("remoto")
-    elif loc_reason.startswith("região de") or loc_reason == "sua região":
+    elif loc_reason.startswith(("região de", "seu estado")) or loc_reason == "sua região":
         score += 10
         reasons.append(loc_reason)
     if abroad:
@@ -601,13 +642,13 @@ def classify(job: Job, cfg: dict) -> bool:
     if not base.accepted:
         job.score, job.reasons, job.padrao = 0, base.reasons, False
         return False
+    job.techs = find_techs(f"{job.title} {job.description or job.snippet}")
     result = evaluate_profile(job, base, profile_from_config(cfg))
     job.score, job.reasons, job.padrao = result.score, result.reasons, result.accepted
     job.area, job.subarea, job.nivel = base.area, base.subarea, base.nivel
     job.english, job.abroad = base.english, base.abroad
     job.years, job.junior_title, job.junior_desc, job.pouca_exp = (
         base.years, base.junior_title, base.junior_desc, base.pouca_exp)
-    job.techs = find_techs(f"{job.title} {job.description or job.snippet}")
     job.city = city_of(job)
     return True
 

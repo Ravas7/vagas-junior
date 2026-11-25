@@ -1,0 +1,62 @@
+// Regras puras do perfil (docs/perfil.js). Rode: node --test tests/perfil.test.js
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const P = require("../docs/perfil.js");
+
+const opcoes = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "docs", "perfil-padrao.json"), "utf8"));
+const padrao = P.normalize(opcoes.perfil);
+
+test("perfil padrão (do config.toml) vira o formato do formulário", () => {
+  assert.deepEqual(padrao.niveis, ["junior"]);
+  // "correlata" do config vira as subáreas; sem hardware
+  assert.deepEqual(padrao.areas, ["dev", "dados", "qa", "devops", "seguranca", "infra", "suporte"]);
+  assert.equal(padrao.regiao_nome, "Salvador");
+  assert.ok(padrao.cidades.includes("Camaçari"));
+  assert.equal(padrao.exterior, true);
+  assert.equal(padrao.ingles_max, "intermediario");
+  assert.equal(padrao.suporte_salario_min, 3200);
+  assert.equal(padrao.anos_max, 2);
+  assert.deepEqual(P.validate(padrao), []);
+});
+
+test("opções do formulário batem com as listas do perfil.js", () => {
+  assert.deepEqual(opcoes.niveis.map((n) => n.id), P.NIVEIS);
+  assert.deepEqual(opcoes.areas.map((a) => a.id), P.SUBAREAS);
+  assert.deepEqual(opcoes.correlatas, P.CORRELATAS);
+  assert.ok(opcoes.tecnologias.includes("Python"));
+});
+
+test("normalize limpa o que veio errado", () => {
+  const p = P.normalize({
+    niveis: ["senior", "xyz", "estagio"], areas: ["hardware", "qa", "nada"], estado: "pe",
+    cidades: [" Recife ", "Recife", ""], ingles_max: "fluente", anos_max: "-3",
+    tecnologias: ["React"], so_minhas_techs: true,
+  });
+  assert.deepEqual(p.niveis, ["estagio", "senior"]);            // na ordem certa, sem lixo
+  assert.deepEqual(p.areas, ["qa", "hardware"]);
+  assert.equal(p.estado, "PE");
+  assert.deepEqual(p.cidades, ["Recife"]);
+  assert.equal(p.regiao_nome, "Recife");
+  assert.equal(p.ingles_max, "intermediario");
+  assert.equal(p.anos_max, 2);
+  assert.equal(p.so_minhas_techs, true);
+  assert.equal(P.normalize({ so_minhas_techs: true }).so_minhas_techs, false);   // sem tecnologias, não filtra
+});
+
+test("validate aponta o que falta", () => {
+  const vazio = P.normalize({ presencial: false, remoto: false, exterior: false });
+  const erros = P.validate(vazio);
+  assert.equal(erros.length, 3);
+  const semLugar = P.normalize({ niveis: ["junior"], areas: ["dev"], presencial: true });
+  assert.match(P.validate(semLugar)[0], /estado ou escreva as cidades/);
+  const soEstado = P.normalize({ niveis: ["junior"], areas: ["dev"], estado: "SP" });
+  assert.deepEqual(P.validate(soEstado), []);
+});
+
+test("summary resume em uma linha", () => {
+  assert.equal(P.summary(padrao, opcoes), "júnior · Salvador, remoto, exterior");
+  const amigo = P.normalize({ niveis: ["estagio", "junior"], areas: ["dev"], estado: "PE", remoto: true });
+  assert.equal(P.summary(amigo, opcoes), "estágio, júnior · PE, remoto");
+});

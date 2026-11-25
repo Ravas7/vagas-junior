@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import sys
 import tomllib
@@ -168,6 +169,20 @@ def check(cfg: dict, only: str | None = None, show: int = 5) -> int:
     return 0 if status and any(s["ok"] for s in status.values()) else 1
 
 
+PROFILE_PATH = "docs/perfil-padrao.json"
+
+
+def profile_json(cfg: dict) -> str:
+    return json.dumps(filters.profile_options(cfg.get("filter", {})), ensure_ascii=False, indent=1) + "\n"
+
+
+def write_profile(cfg: dict, path: str = PROFILE_PATH) -> int:
+    """Grava o perfil padrão (do config.toml) e as opções do formulário para o painel."""
+    Path(path).write_text(profile_json(cfg), encoding="utf-8")
+    log(f"Perfil padrão salvo em {path}. Faça o commit desse arquivo.")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
     parser = argparse.ArgumentParser(prog="vagas", description="Ragas: central de vagas")
@@ -177,12 +192,15 @@ def main(argv: list[str] | None = None) -> int:
     p_run.add_argument("--no-email", action="store_true", help="não envia; salva prévia em out/")
     p_check = sub.add_parser("check", help="testa as fontes e o filtro sem salvar nada")
     p_check.add_argument("--source", help="testar só uma fonte (gupy, adzuna...)")
+    sub.add_parser("perfil", help=f"grava {PROFILE_PATH} (perfil padrão e opções do formulário)")
     args = parser.parse_args(argv)
 
     load_dotenv()
     cfg = load_config(args.config)
     if args.cmd == "run":
         return run(cfg, send_email=not args.no_email)
+    if args.cmd == "perfil":
+        return write_profile(cfg)
     return check(cfg, args.source)
 
 

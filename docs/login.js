@@ -55,7 +55,12 @@
     out.className = "link-btn";
     out.textContent = "Sair";
     out.addEventListener("click", () => Sync.signOut());
-    box.replaceChildren(`Conectado como ${user.name || user.email} · `, out);
+    const perfil = document.createElement("button");
+    perfil.type = "button";
+    perfil.className = "link-btn";
+    perfil.textContent = "Meu perfil";
+    perfil.addEventListener("click", () => window.Perfil && window.Perfil.open());
+    box.replaceChildren(`Conectado como ${user.name || user.email} · `, perfil, " · ", out);
     box.hidden = false;
   }
 
