@@ -3,23 +3,98 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Radar de vagas júnior</title>
-  <meta name="description" content="Painel de vagas de desenvolvimento para nível júnior, atualizado automaticamente.">
-  <link rel="icon" href="data:,">
+  <title>Ragas · central de vagas</title>
+  <meta name="description" content="Ragas: central de vagas de tecnologia filtradas pelo seu perfil, atualizada todo dia.">
+  <meta name="theme-color" content="#0f1b2d">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=Syne:wght@700&display=swap">
   <link rel="stylesheet" href="style.css">
   <script>
     // aplica o tema escolhido antes de desenhar a página, para não piscar
     try { const t = localStorage.getItem("vagas-junior:tema:v1"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+    // o painel fica escondido até confirmar o login (login.js tira esta classe)
+    document.documentElement.classList.add("gated");
   </script>
 </head>
 <body>
+  <main class="gate" id="gate" aria-labelledby="gate-title">
+    <div class="gate-bar">
+      <p class="logo">
+        <img src="ragas-pin-curto.svg" alt="" width="29" height="40">
+        <span class="logo-nome">ragas<span class="logo-tag">central de vagas</span></span>
+      </p>
+      <div class="theme gate-theme" role="group" aria-label="Tema">
+        <button type="button" data-theme-set="" aria-pressed="true" title="Segue o tema do seu aparelho">Automático</button>
+        <button type="button" data-theme-set="light" aria-pressed="false">Claro</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false">Escuro</button>
+      </div>
+    </div>
+
+    <div class="gate-wrap">
+      <div class="gate-intro">
+        <h1 id="gate-title">Vagas de tecnologia escolhidas pelo seu perfil</h1>
+        <p>Estágio, júnior, pleno ou sênior. Dev, dados, QA, suporte ou hardware. Você diz o que procura e o Ragas mostra só o que serve.</p>
+        <ul class="gate-points">
+          <li>Vagas novas todo dia, de várias fontes</li>
+          <li>Quadro para acompanhar suas candidaturas</li>
+          <li>Funciona no computador e no celular</li>
+        </ul>
+      </div>
+
+      <section class="gate-card" aria-label="Entrar ou criar conta">
+        <p class="gate-wait" id="gate-wait">Verificando sua conta…</p>
+
+        <div id="gate-forms" hidden>
+          <div class="gate-tabs" role="tablist" aria-label="Entrar ou criar conta">
+            <button role="tab" type="button" id="gate-tab-entrar" aria-selected="true" aria-controls="gate-entrar">Entrar</button>
+            <button role="tab" type="button" id="gate-tab-criar" aria-selected="false" aria-controls="gate-criar">Criar conta</button>
+          </div>
+
+          <button class="kb-btn gate-google" type="button" id="gate-google">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9z"/></svg>
+            Continuar com Google
+          </button>
+          <p class="gate-or"><span>ou com e-mail</span></p>
+
+          <form class="gate-form" id="gate-entrar" role="tabpanel" aria-labelledby="gate-tab-entrar" novalidate>
+            <label class="field"><span>E-mail</span><input type="email" name="email" autocomplete="email" required></label>
+            <label class="field"><span>Senha</span><input type="password" name="senha" autocomplete="current-password" required></label>
+            <button class="kb-btn primary" type="submit">Entrar</button>
+            <button class="link-btn gate-forgot" type="button" id="gate-forgot">Esqueci minha senha</button>
+          </form>
+
+          <form class="gate-form" id="gate-criar" role="tabpanel" aria-labelledby="gate-tab-criar" novalidate hidden>
+            <label class="field"><span>Seu nome</span><input type="text" name="nome" autocomplete="name" required maxlength="60"></label>
+            <label class="field"><span>E-mail</span><input type="email" name="email" autocomplete="email" required></label>
+            <label class="field"><span>Senha</span><input type="password" name="senha" autocomplete="new-password" required minlength="6" aria-describedby="gate-senha-dica"></label>
+            <p class="gate-hint" id="gate-senha-dica">Pelo menos 6 caracteres.</p>
+            <label class="field"><span>Repita a senha</span><input type="password" name="senha2" autocomplete="new-password" required minlength="6"></label>
+            <button class="kb-btn primary" type="submit">Criar conta</button>
+          </form>
+        </div>
+
+        <p class="gate-msg" id="gate-msg" role="status" aria-live="polite"></p>
+        <button class="kb-btn small" type="button" id="gate-retry" hidden>Tentar de novo</button>
+      </section>
+    </div>
+
+    <p class="gate-foot">Suas candidaturas e seu perfil ficam guardados na sua conta.</p>
+  </main>
+
   <header class="top">
     <div class="top-title">
-      <h1>Vagas para devs júnior</h1>
+      <h1 class="logo">
+        <a href="./" class="logo-link">
+          <img src="ragas-pin-curto.svg" alt="" width="35" height="48">
+          <span class="logo-nome">ragas<span class="logo-tag">central de vagas</span></span>
+        </a>
+      </h1>
       <p class="top-sub" id="updated">Carregando vagas…</p>
+      <p class="top-account" id="account" hidden></p>
     </div>
     <section class="pulse" aria-labelledby="pulse-title">
       <h2 id="pulse-title">Chegaram nos últimos 14 dias</h2>
@@ -139,6 +214,7 @@
   <script src="firebase-config.js"></script>
   <script src="store.js"></script>
   <script src="sync.js"></script>
+  <script src="login.js"></script>
   <script src="kanban.js"></script>
   <script src="app.js"></script>
 </body>

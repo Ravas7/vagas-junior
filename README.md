@@ -1,4 +1,4 @@
-# Radar de vagas júnior
+# Ragas · central de vagas
 
 Busca vagas de desenvolvimento para nível júnior em várias fontes, descarta o que não serve (sênior, pleno, pede muita experiência), **manda um e-mail só com as vagas novas** e mantém um **painel web** com filtros para você acompanhar tudo.
 
@@ -150,7 +150,7 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
 **Para sincronizar entre aparelhos** (opcional, de graça no plano Spark do Firebase):
 
 1. Em [console.firebase.google.com](https://console.firebase.google.com), crie um projeto (pode desligar o Google Analytics).
-2. **Authentication > Sign-in method**: ative **Google**. Em **Configurações > Domínios autorizados**, adicione `SEU-USUARIO.github.io`.
+2. **Authentication > Sign-in method**: ative **Google** e **E-mail/senha**. Em **Configurações > Domínios autorizados**, adicione `SEU-USUARIO.github.io`. Em **Templates**, dá para trocar o idioma do e-mail de "nova senha" para português.
 3. **Firestore Database > Criar banco de dados** (modo produção, região `southamerica-east1`).
 4. Na aba **Regras** do Firestore, cole e publique (troque `SEU_EMAIL` pelo seu e-mail do Google):
    ```
@@ -166,7 +166,9 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
    }
    ```
 5. **Configurações do projeto > Seus apps > Web (`</>`)**: registre um app e copie o objeto `firebaseConfig`. Cole em `docs/firebase-config.js`, no lugar de `null`. Esses valores não são segredos; quem protege os dados são as regras acima.
-6. Faça o commit. No painel, clique em **Entrar com Google** em cada aparelho.
+6. Faça o commit. Com o Firebase configurado, **o painel pede login antes de abrir**: a tela de entrada aceita Google ou e-mail e senha, tem **Criar conta** e **Esqueci minha senha**. Sem `firebase-config.js` (valor `null`), o painel abre direto, sem login.
+
+> O login esconde a tela, mas o arquivo `data/jobs.json` continua público no GitHub Pages. Não coloque nada secreto nele.
 
 Os dados ficam em `users/{seu-uid}/candidaturas`. Se dois aparelhos mexerem no mesmo cartão, vale a alteração mais recente. Sem internet nada se perde: o que mudou é enviado quando voltar. Vagas salvas e ocultas ainda ficam só no navegador.
 

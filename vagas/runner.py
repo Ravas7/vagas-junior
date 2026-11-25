@@ -163,7 +163,7 @@ def check(cfg: dict, only: str | None = None, show: int = 5) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     import argparse
-    parser = argparse.ArgumentParser(prog="vagas", description="Radar de vagas júnior")
+    parser = argparse.ArgumentParser(prog="vagas", description="Ragas: central de vagas")
     parser.add_argument("--config", default="config.toml")
     sub = parser.add_subparsers(dest="cmd", required=True)
     p_run = sub.add_parser("run", help="coleta, filtra, envia e-mail e salva")

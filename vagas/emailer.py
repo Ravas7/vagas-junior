@@ -49,7 +49,7 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
     headline = " e ".join(pieces) or "Sem novidades"
 
     msg = EmailMessage()
-    msg["Subject"] = f"{cfg.get('subject_prefix', 'Vagas júnior')}: {headline} em {today_label}"
+    msg["Subject"] = f"{cfg.get('subject_prefix', 'Ragas')}: {headline} em {today_label}"
     msg["From"] = sender
     msg["To"] = recipient
 
@@ -105,7 +105,8 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
     html = f"""<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F3F6F8;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:8px;padding:8px 24px 24px">
-<tr><td style="padding:20px 0 4px"><h1 style="margin:0;font-size:22px;color:#0F1B2D">{escape(headline)}</h1></td></tr>
+<tr><td style="padding:20px 0 0"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:#F2A900;color:#0F1B2D;font-size:13px;font-weight:700;letter-spacing:-0.01em">ragas</span> <span style="font-size:12px;color:#5B6B7B">central de vagas</span></td></tr>
+<tr><td style="padding:12px 0 4px"><h1 style="margin:0;font-size:22px;color:#0F1B2D">{escape(headline)}</h1></td></tr>
 {body}
 <tr><td>{more}{button}</td></tr>
 </table></td></tr></table></body></html>"""
