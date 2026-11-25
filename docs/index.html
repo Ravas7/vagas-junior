@@ -95,6 +95,7 @@
       </h1>
       <p class="top-sub" id="updated">Carregando vagas…</p>
       <p class="top-account" id="account" hidden></p>
+      <p class="top-account" id="profile-line" hidden></p>
     </div>
     <section class="pulse" aria-labelledby="pulse-title">
       <h2 id="pulse-title">Chegaram nos últimos 14 dias</h2>
@@ -146,18 +147,19 @@
             <label class="field">
               <span>Área</span>
               <select id="area">
-                <option value="">Dev, correlatas e suporte</option>
+                <option value="">Todas as áreas</option>
                 <option value="dev">Só desenvolvimento</option>
                 <option value="correlata">Só áreas correlatas (dados, QA, DevOps...)</option>
                 <option value="suporte">Só suporte técnico</option>
+                <option value="hardware">Só hardware e assistência técnica</option>
               </select>
             </label>
 
             <label class="field">
               <span>Local</span>
               <select id="local">
-                <option value="">Salvador, remoto e exterior</option>
-                <option value="ssa">Só Salvador e região</option>
+                <option value="">Todos os lugares</option>
+                <option value="ssa">Só presencial e híbrido</option>
                 <option value="br">Só remoto (Brasil)</option>
                 <option value="exterior">Só remoto no exterior</option>
               </select>

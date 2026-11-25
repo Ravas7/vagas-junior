@@ -143,5 +143,60 @@
   "Pojuca",
   "São Sebastião do Passé",
   "SSA"
- ]
+ ],
+ "regras": {
+  "remote_block": [
+   "united states",
+   "usa",
+   "us only",
+   "u.s.",
+   "canada",
+   "united kingdom",
+   "uk",
+   "europe",
+   "emea",
+   "apac",
+   "india",
+   "germany",
+   "portugal",
+   "spain",
+   "mexico",
+   "argentina",
+   "colombia",
+   "chile",
+   "philippines",
+   "australia",
+   "poland",
+   "ireland",
+   "netherlands",
+   "france"
+  ],
+  "remote_ok": [
+   "brasil",
+   "brazil",
+   "latam",
+   "america latina",
+   "latin america",
+   "worldwide",
+   "global"
+  ],
+  "english_rank": {
+   "": 0,
+   "basico": 1,
+   "intermediario": 2,
+   "avancado": 3
+  },
+  "area_nome": {
+   "dev": "desenvolvimento",
+   "correlata": "área correlata",
+   "suporte": "suporte técnico",
+   "hardware": "hardware e assistência técnica"
+  },
+  "nivel_nome": {
+   "estagio": "estágio",
+   "junior": "júnior",
+   "pleno": "pleno",
+   "senior": "sênior ou acima"
+  }
+ }
 }

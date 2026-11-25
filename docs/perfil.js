@@ -80,7 +80,137 @@
     return `${niveis.join(", ")} · ${onde.filter(Boolean).join(", ")}`;
   }
 
-  return { UFS, NIVEIS, SUBAREAS, CORRELATAS, normalize, validate, summary };
+  /* ---------- filtro: a mesma conta de evaluate_profile (vagas/filters.py) ----------
+   * Mudou lá? Mude aqui também. O teste de paridade (tests/perfil.test.js) compara os dois. */
+  const norm = (s) => String(s || "").normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+  const reCache = new Map();
+  function termRegex(term) {
+    if (!reCache.has(term)) {
+      const esc = norm(term).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      reCache.set(term, new RegExp("(?<![a-z0-9])" + esc + "(?![a-z0-9])"));
+    }
+    return reCache.get(term);
+  }
+  const findTerm = (text, terms) => terms.find((t) => termRegex(t).test(text)) || null;
+  const get = (o, k, d) => (o && o[k] !== undefined && o[k] !== null ? o[k] : d);
+
+  function isAbroad(job, r) {
+    const loc = norm(job.location);
+    return !!(findTerm(loc, r.remote_block) && !findTerm(loc, r.remote_ok));
+  }
+
+  function locationCheck(job, p, r) {
+    if (!get(p, "filtrar_local", true)) return [true, ""];
+    const regiao = get(p, "regiao_nome", "");
+    const notSsa = (t) => norm(t).split("el salvador").join("").split("san salvador").join("");
+    const loc = notSsa(job.location);
+    const where = job.location || "local não informado";
+    if (job.workplace === "remoto" && get(p, "remoto", true)) {
+      if (isAbroad(job, r)) {
+        if (!get(p, "exterior", true)) return [false, `remoto restrito a outro país (${job.location})`];
+        return [true, "remoto no exterior"];
+      }
+      return [true, "remoto"];
+    }
+    if (!get(p, "presencial", true)) return [false, `não é remota (${where})`];
+    const cities = get(p, "cidades", []).map(norm);
+    if (cities.length && (findTerm(loc, cities) || findTerm(notSsa(job.title), cities))) {
+      return [true, regiao ? `região de ${regiao}` : "sua região"];
+    }
+    const estado = String(get(p, "estado", "") || "").toUpperCase();
+    if (!cities.length && estado && job.uf === estado) {
+      return [true, regiao ? `região de ${regiao}` : `seu estado (${estado})`];
+    }
+    if (!loc && get(p, "local_desconhecido", false)) return [true, "local não informado"];
+    const fora = regiao ? `fora de ${regiao} e região`
+      : estado && !cities.length ? `fora de ${estado}` : "fora das suas cidades";
+    return [false, `${fora} (${where})`];
+  }
+
+  function levelCheck(area, nivel, niveis) {
+    if (niveis.includes(nivel)) return true;
+    if (nivel === "") return ["junior", "pleno", "senior"].some((n) => niveis.includes(n));
+    return area === "suporte" && nivel === "pleno" && niveis.includes("junior");
+  }
+
+  /* Diz se a vaga combina com o perfil e dá a nota. `opts` = perfil-padrao.json.
+   * Devolve { accepted, score, reasons, comuns }. */
+  function evaluate(job, p, opts) {
+    const r = opts.regras;
+    if (job.tipo === "noticia") return { accepted: true, score: job.score || 0, reasons: job.reasons || [], comuns: [] };
+    // vaga gravada antes dos campos novos: vale o resultado de quando foi coletada
+    if (job.nivel === undefined) return { accepted: true, score: job.score || 0, reasons: job.reasons || [], comuns: [], legacy: true };
+
+    const area = job.area || "dev", nivel = job.nivel || "", english = job.english || "";
+    const niveis = get(p, "niveis", ["junior"]);
+    const no = (why) => ({ accepted: false, score: 0, reasons: [why], comuns: [] });
+
+    const areas = get(p, "areas", ["dev", "correlata", "suporte"]);
+    if (!areas.includes(area) && !areas.includes(job.subarea)) return no(`${r.area_nome[area]} fora do perfil`);
+    const minhas = new Set(get(p, "tecnologias", []));
+    const comuns = (job.techs || []).filter((t) => minhas.has(t));
+    if (minhas.size && get(p, "so_minhas_techs", false) && !comuns.length) return no("não cita suas tecnologias");
+    if (!levelCheck(area, nivel, niveis)) {
+      return no(nivel ? `nível ${r.nivel_nome[nivel] || "não informado"} fora do perfil` : "nível não informado (perfil só de estágio)");
+    }
+
+    const [locOk, locReason] = locationCheck(job, p, r);
+    if (!locOk) return no(locReason);
+    const abroad = locReason === "remoto no exterior";
+
+    const cap = get(p, "ingles_max", "intermediario");
+    if (cap in r.english_rank && r.english_rank[english] > r.english_rank[cap]) {
+      return no(`exige inglês ${english} (limite: ${cap})`);
+    }
+
+    const salary = job.salary || 0;
+    if (area === "suporte") {
+      const minimum = get(p, "suporte_salario_min", 3200);
+      if (salary <= 0 && !get(p, "suporte_sem_salario", false)) return no(`suporte sem salário informado (mínimo R$ ${minimum})`);
+      if (salary > 0 && salary < minimum) return no(`suporte paga R$ ${salary} (mínimo R$ ${minimum})`);
+    }
+
+    const techArea = area === "dev" || area === "correlata";
+    const years = job.years || 0, maxYears = Math.trunc(Number(get(p, "anos_max", 0)) || 0);
+    if (techArea && maxYears && years > maxYears && !job.junior_title) return no(`pede ${years} anos de experiência`);
+
+    let score = { dev: 20, correlata: 10, suporte: 40, hardware: 40 }[area];
+    const reasons = [{ dev: "termo de dev no título", correlata: "área correlata no título",
+      suporte: "suporte técnico", hardware: "hardware e assistência técnica" }[area]];
+    if (area === "suporte") {
+      reasons.push(salary ? `salário R$ ${salary}` : "salário não informado");
+    } else if (area === "hardware") {
+      if (salary) reasons.push(`salário R$ ${salary}`);
+    } else if (nivel && niveis.includes(nivel)) {
+      score += 50;
+      reasons.push(job.junior_title ? "júnior no título" : nivel === "estagio" ? "estágio" : `${r.nivel_nome[nivel]} no título`);
+    } else if (!nivel && job.junior_desc && niveis.includes("junior")) {
+      score += 20;
+      reasons.push("júnior na descrição");
+    }
+    if (techArea && job.pouca_exp) { score += 5; reasons.push("aceita pouca experiência"); }
+    if (techArea && maxYears && years > 0 && years <= maxYears) { score += 5; reasons.push(`pede até ${years} anos`); }
+    if (techArea && maxYears && years > maxYears) { score -= 30; reasons.push(`pede ${years} anos (penalizado)`); }
+    if (job.grande) { score += get(p, "bonus_grande", 10); reasons.push("grande empresa"); }
+    if (comuns.length) { score += get(p, "bonus_tecnologia", 10); reasons.push("sua tecnologia: " + comuns.join(", ")); }
+    if (job.workplace === "remoto") {
+      score += get(p, "bonus_remoto", 10);
+      reasons.push("remoto");
+    } else if (locReason.startsWith("região de") || locReason.startsWith("seu estado") || locReason === "sua região") {
+      score += 10;
+      reasons.push(locReason);
+    }
+    if (abroad) reasons.push("no exterior");
+    if (english) reasons.push(`inglês ${english}`);
+    const preferred = new Set(get(p, "estados_preferidos", []).map((s) => s.toUpperCase()));
+    if (job.uf && preferred.has(job.uf)) { score += 10; reasons.push(`estado preferido (${job.uf})`); }
+
+    const accepted = score >= get(p, "nota_minima", 40);
+    if (!accepted) reasons.push("nota abaixo do mínimo");
+    return { accepted, score, reasons, comuns };
+  }
+
+  return { UFS, NIVEIS, SUBAREAS, CORRELATAS, normalize, validate, summary, evaluate, norm };
 });
 
 /* ---------------------------------------------------------------- janela (só navegador) */
@@ -98,6 +228,7 @@
   P.options = null;
   P.onChange = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
   P.open = (first = false) => open(first);
+  P.loadOptions = () => options();
 
   const readCache = (id) => { try { return JSON.parse(localStorage.getItem(KEY + id)); } catch { return null; } };
   const writeCache = (id, p) => { try { localStorage.setItem(KEY + id, JSON.stringify(p)); } catch { /* modo privado */ } };

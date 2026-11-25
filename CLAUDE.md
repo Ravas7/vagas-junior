@@ -33,7 +33,7 @@ docs/              painel em HTML, CSS e JS puro (sem build)
   kanban.js        tela do quadro (arrastar, menu, folha no celular)
   sync.js          login e sincronização com Firebase
   login.js         tela de entrada (login obrigatório quando o Firebase está ligado)
-  perfil.js        regras do perfil e janela "Meu perfil" (salva em users/{uid}/perfil/atual)
+  perfil.js        regras e filtro do perfil (cópia em JS de evaluate_profile) e janela "Meu perfil"
   perfil-padrao.json  perfil do config.toml e opções do formulário (python -m vagas perfil)
 tests/             pytest (Python) e node:test (store.js, perfil.js)
 .github/workflows/ agendamento
@@ -42,8 +42,9 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 155 testes, todos offline
-node --test tests/store.test.js tests/perfil.test.js   # 23 testes do quadro e do perfil (Node 20+)
+python -m pytest -q                  # 156 testes, todos offline
+node --test tests/store.test.js tests/perfil.test.js   # 26 testes do quadro e do perfil (Node 20+)
+python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só
 python -m vagas run                  # coleta de verdade, salva e envia e-mail
@@ -61,6 +62,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 - Uma fonte que falha só gera aviso. Nunca deixe uma fonte derrubar a coleta inteira.
 - Fontes de vagas usam endpoints públicos sem documentação oficial (principalmente a Gupy, `portal.gupy.io/api/job-search/jobs`). Se uma fonte quebrar, rode `check --source nome` e leia o erro antes de mudar qualquer coisa.
 - Textos do painel e do e-mail em português, frases curtas, sem jargão.
+- O filtro do perfil existe em Python (`evaluate_profile` em `filters.py`) e em JS (`evaluate` em `docs/perfil.js`). Mudou um, mude o outro e rode `python tests/make_paridade.py`; o teste de paridade compara os dois.
 
 ## Quadro de candidaturas
 

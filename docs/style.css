@@ -360,6 +360,7 @@ button.kpi:hover { border-color: var(--tone); }
 .tag.support { background: var(--amber-soft); color: var(--ink); }
 .tag.money { background: transparent; border: 1px solid var(--teal); color: var(--teal); font-weight: 500; }
 .tag.abroad { background: var(--ink); color: var(--paper); opacity: .8; }
+.tag.tech { background: var(--teal-soft); color: var(--teal); font-weight: 600; }
 .tag.big { background: var(--ink); color: var(--paper); }
 .tag.area { background: var(--violet-soft); color: var(--violet); }
 .tag.news { background: transparent; border: 1px dashed var(--muted); color: var(--ink); }

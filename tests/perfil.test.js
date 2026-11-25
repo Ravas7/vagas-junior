@@ -60,3 +60,37 @@ test("summary resume em uma linha", () => {
   const amigo = P.normalize({ niveis: ["estagio", "junior"], areas: ["dev"], estado: "PE", remoto: true });
   assert.equal(P.summary(amigo, opcoes), "estágio, júnior · PE, remoto");
 });
+
+test("paridade: o JS decide igual ao Python em todas as vagas e perfis", () => {
+  const fx = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "paridade.json"), "utf8"));
+  let checked = 0;
+  for (const [nome, perfil] of Object.entries(fx.perfis)) {
+    fx.vagas.forEach((vaga, i) => {
+      const [accepted, score, reasons] = fx.esperado[nome][i];
+      const got = P.evaluate(vaga, perfil, opcoes);
+      assert.deepEqual([got.accepted, got.score, got.reasons], [accepted, score, reasons],
+        `perfil "${nome}", vaga "${vaga.title}" (${vaga.location || "sem local"}, ${vaga.workplace || "-"})`);
+      checked++;
+    });
+  }
+  assert.ok(checked > 3000, `poucas comparações: ${checked}`);
+});
+
+test("vaga antiga (sem os campos novos) e notícia passam como vieram", () => {
+  const antiga = { id: "a", tipo: "vaga", title: "Dev Jr", score: 80, reasons: ["x"] };
+  assert.deepEqual(P.evaluate(antiga, padrao, opcoes).score, 80);
+  const noticia = { id: "n", tipo: "noticia", title: "Itaú abre trainee", score: 70, reasons: [] };
+  assert.equal(P.evaluate(noticia, P.normalize({ niveis: ["senior"] }), opcoes).accepted, true);
+});
+
+test("paridade também com o perfil no formato salvo pelo formulário (normalize)", () => {
+  const fx = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "paridade.json"), "utf8"));
+  for (const nome of ["padrao", "recife_estado", "techs_filtro", "pleno_senior"]) {
+    const perfil = P.normalize(fx.perfis[nome]);
+    fx.vagas.forEach((vaga, i) => {
+      const [accepted, score] = fx.esperado[nome][i];
+      const got = P.evaluate(vaga, perfil, opcoes);
+      assert.deepEqual([got.accepted, got.score], [accepted, score], `perfil "${nome}" normalizado, vaga "${vaga.title}"`);
+    });
+  }
+});

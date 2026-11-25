@@ -270,7 +270,25 @@ def profile_options(cfg: dict) -> dict:
         "correlatas": list(RELATED_GROUPS),          # "correlata" no config = estas subáreas
         "tecnologias": list(TECH_TERMS),
         "cidades_padrao": list(RMS_CITIES),
+        # o painel repete evaluate_profile em JS (docs/perfil.js) e precisa destas listas
+        "regras": {
+            "remote_block": REMOTE_BLOCK,
+            "remote_ok": REMOTE_OK,
+            "english_rank": ENGLISH_RANK,
+            "area_nome": AREA_NOME,
+            "nivel_nome": NIVEL_NOME,
+        },
     }
+
+
+def base_from_job(job: Job) -> Result:
+    """Remonta o resultado da base a partir dos campos salvos no jobs.json.
+
+    É o que o painel tem em mãos; serve para o teste de paridade com o JS e,
+    no futuro, para o e-mail de cada pessoa.
+    """
+    return Result(True, 0, [], job.area, job.english, job.abroad, job.nivel, job.junior_title,
+                  job.junior_desc, job.pouca_exp, job.years, job.subarea)
 
 
 def related_group(title_norm: str) -> str:

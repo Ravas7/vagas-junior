@@ -183,3 +183,14 @@ def test_areas_finas_do_perfil():
     assert com_perfil(dados, areas=["dados"]).accepted
     assert not com_perfil(qa, areas=["dados"]).accepted
     assert com_perfil(qa, areas=["correlata"]).accepted                          # o grupo todo
+
+
+def test_arquivo_de_paridade_esta_em_dia():
+    """tests/fixtures/paridade.json alimenta o teste do JS (rode: python tests/make_paridade.py)."""
+    import importlib.util
+    from pathlib import Path
+    spec = importlib.util.spec_from_file_location("make_paridade", Path("tests/make_paridade.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    atual = Path("tests/fixtures/paridade.json").read_text(encoding="utf-8").replace("\r\n", "\n")
+    assert atual == mod.build(), "rode: python tests/make_paridade.py"

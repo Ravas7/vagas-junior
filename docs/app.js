@@ -7,6 +7,7 @@
     gupy: "Gupy", adzuna: "Adzuna", greenhouse: "Greenhouse", lever: "Lever", ashby: "Ashby",
     smartrecruiters: "SmartRecruiters", workday: "Workday", noticias: "Notícias",
   };
+  const NIVEL = { estagio: "Estágio", pleno: "Pleno", senior: "Sênior" };   // júnior é o normal: sem etiqueta
   const EN = { "": "Inglês não informado", basico: "Inglês básico", intermediario: "Inglês intermediário", avancado: "Inglês avançado" };
   const STORE = "vagas-junior:status:v1";
   const C = window.Candidaturas;
@@ -79,12 +80,42 @@
       try { data = await get("data/jobs.sample.json"); state.sample = true; } catch (e) { console.warn(e); }
     }
     // O arquivo traz tudo que passou na base (estágio, pleno, sênior, hardware...).
-    // Por enquanto o painel mostra só o perfil padrão; o filtro por perfil vem depois.
+    // applyProfile escolhe o que aparece: pelo perfil de quem entrou ou pelo perfil padrão.
     state.allJobs = data.jobs;
-    state.jobs = data.jobs.filter((j) => j.padrao !== false);
     state.meta = data.meta || {};
     state.now = state.sample ? new Date("2026-11-23T15:00:00-03:00") : new Date();
+    applyProfile();
   }
+
+  /* ---------- perfil ---------- */
+  const P = window.Perfil;
+  function applyProfile() {
+    const p = state.perfil, o = state.opts;
+    if (p && o) {
+      state.jobs = state.allJobs.flatMap((j) => {
+        const r = P.evaluate(j, p, o);
+        return r.accepted ? [{ ...j, score: r.score, reasons: r.reasons, comuns: r.comuns }] : [];
+      });
+    } else {
+      state.jobs = state.allJobs.filter((j) => j.padrao !== false);   // sem perfil: o do config.toml
+    }
+    const line = $("#profile-line");
+    if (p && o) {
+      line.replaceChildren("Seu perfil: " + P.summary(p, o) + " · ",
+        h("button", { class: "link-btn", type: "button", onclick: () => P.open() }, "Editar"));
+    }
+    line.hidden = !(p && o);
+  }
+
+  function setProfile(raw) {
+    const o = state.opts;
+    state.perfil = raw && o ? P.normalize(raw, P.normalize(o.perfil)) : null;
+    if (!state.allJobs) return;                       // as vagas ainda estão chegando
+    applyProfile();
+    state.day = null;
+    renderHeader(); renderPulse(); render();
+  }
+  P.onChange(setProfile);
 
   /* ---------- filtros ---------- */
   function filters() {
@@ -150,8 +181,8 @@
   }
 
   function fillSelects() {
-    const ufs = [...new Set(state.jobs.map((j) => j.uf).filter(Boolean))].sort();
-    const srcs = [...new Set(state.jobs.map((j) => j.source))].sort();
+    const ufs = [...new Set(state.allJobs.map((j) => j.uf).filter(Boolean))].sort();
+    const srcs = [...new Set(state.allJobs.map((j) => j.source))].sort();
     $("#uf").append(...ufs.map((u) => h("option", { value: u }, u)));
     $("#source").append(...srcs.map((s) => h("option", { value: s }, SRC[s] || s)));
   }
@@ -185,6 +216,9 @@
           job.grande && h("span", { class: "tag big" }, "Grande empresa"),
           job.area === "correlata" && h("span", { class: "tag area" }, "Área correlata"),
           job.area === "suporte" && h("span", { class: "tag support" }, "Suporte técnico"),
+          job.area === "hardware" && h("span", { class: "tag support" }, "Hardware"),
+          NIVEL[job.nivel] && h("span", { class: "tag area" }, NIVEL[job.nivel]),
+          (job.comuns || []).length > 0 && h("span", { class: "tag tech" }, "Sua tecnologia: " + job.comuns.join(", ")),
           job.abroad && h("span", { class: "tag abroad" }, "Remoto no exterior"),
           job.abroad && h("span", { class: "tag plain" }, EN[job.english || ""]),
           !job.abroad && job.english && h("span", { class: "tag plain" }, EN[job.english]),
@@ -400,7 +434,11 @@
   bindTheme();                 // já vale na tela de entrada, antes das vagas carregarem
   window.Sync.init(store);     // o login começa junto com o download das vagas
 
-  load().then(() => {
+  Promise.all([
+    P.loadOptions().then((o) => { state.opts = o; }).catch((e) => console.warn("perfil-padrao.json:", e)),
+    load(),
+  ]).then(() => {
+    if (P.current) setProfile(P.current);            // o perfil chegou antes das vagas
     state.status = store.migrateLegacy(state.status, Object.fromEntries(state.jobs.map((j) => [j.id, j])));
     writeStatus();
     fillSelects(); bind(); renderHeader(); renderPulse(); render();
