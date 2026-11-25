@@ -152,19 +152,40 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
 1. Em [console.firebase.google.com](https://console.firebase.google.com), crie um projeto (pode desligar o Google Analytics).
 2. **Authentication > Sign-in method**: ative **Google** e **E-mail/senha**. Em **Configurações > Domínios autorizados**, adicione `SEU-USUARIO.github.io`. Em **Templates**, dá para trocar o idioma do e-mail de "nova senha" para português.
 3. **Firestore Database > Criar banco de dados** (modo produção, região `southamerica-east1`).
-4. Na aba **Regras** do Firestore, cole e publique (troque `SEU_EMAIL` pelo seu e-mail do Google):
+4. Na aba **Regras** do Firestore, cole e publique (troque `SEU_EMAIL` pelo seu e-mail, o do admin):
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
+       function logado() { return request.auth != null; }
+       function admin() {
+         return logado() && request.auth.token.email == 'SEU_EMAIL'
+                && request.auth.token.email_verified == true;
+       }
+       function aprovado() {
+         return logado() && exists(/databases/$(database)/documents/acesso/$(request.auth.uid))
+                && get(/databases/$(database)/documents/acesso/$(request.auth.uid)).data.status == 'aprovado';
+       }
+
+       // dados de cada pessoa: só ela, e só depois de liberada
        match /users/{uid}/{document=**} {
-         allow read, write: if request.auth != null
-                            && request.auth.uid == uid
-                            && request.auth.token.email == 'SEU_EMAIL';
+         allow read, write: if logado() && request.auth.uid == uid && (admin() || aprovado());
+       }
+
+       // pedidos de acesso: a pessoa cria o próprio pedido (pendente); só o admin decide
+       match /acesso/{uid} {
+         allow read: if admin() || (logado() && request.auth.uid == uid);
+         allow create: if logado() && request.auth.uid == uid
+                       && request.resource.data.keys().hasOnly(['email', 'nome', 'status', 'pedidoEm'])
+                       && request.resource.data.status == 'pendente'
+                       && request.resource.data.email == request.auth.token.email
+                       && request.resource.data.nome is string && request.resource.data.nome.size() <= 60;
+         allow update, delete: if admin();
        }
      }
    }
    ```
+   **Como funciona o acesso:** qualquer pessoa cria conta na tela de entrada. Na primeira vez, o painel cria sozinho um pedido em `acesso/{uid}` e mostra "Pedido enviado". Você (admin) vê o link **Acessos** no topo, com o número de pedidos esperando, e clica em **Liberar** ou **Recusar**. Quando libera, a tela da pessoa abre sozinha. Dá para **Bloquear** depois. Quem é admin fica só nas regras, não no código do site.
 5. **Configurações do projeto > Seus apps > Web (`</>`)**: registre um app e copie o objeto `firebaseConfig`. Cole em `docs/firebase-config.js`, no lugar de `null`. Esses valores não são segredos; quem protege os dados são as regras acima.
 6. Faça o commit. Com o Firebase configurado, **o painel pede login antes de abrir**: a tela de entrada aceita Google ou e-mail e senha, tem **Criar conta** e **Esqueci minha senha**. Sem `firebase-config.js` (valor `null`), o painel abre direto, sem login.
 

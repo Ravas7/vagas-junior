@@ -36,6 +36,7 @@ docs/              painel em HTML, CSS e JS puro (sem build)
   login.js         tela de entrada (login obrigatório quando o Firebase está ligado)
   perfil.js        regras e filtro do perfil (cópia em JS de evaluate_profile) e janela "Meu perfil"
   perfil-padrao.json  perfil do config.toml e opções do formulário (python -m vagas perfil)
+  admin.js         janela "Acessos": o admin libera ou recusa quem criou conta
 tests/             pytest (Python) e node:test (store.js, perfil.js)
 .github/workflows/ agendamento
 ```
@@ -83,8 +84,8 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 6. Abrir para amigos testarem (uso real, não venda). Fazer em etapas e com plano aprovado antes:
    - Perfil por pessoa no Firestore (cidade, remoto, tecnologias, salário mínimo).
    - Robô coleta mais amplo; cada pessoa filtra no painel pelo próprio perfil.
-   - Regras do Firestore liberam uma lista de e-mails convidados (hoje só o meu).
-   - Cadastro com e-mail e senha, além do Google.
+   - (feito) Acesso por pedido: quem cria conta fica pendente em `acesso/{uid}`; o admin libera em "Acessos". Regras no README, passo 9.
+   - (feito) Cadastro com e-mail e senha, além do Google.
    - Aviso de vagas novas por pessoa (navegador ou Telegram; e-mail em massa é mais caro).
    - Painel instalável no celular (PWA).
    - Página curta sobre quais dados são guardados e como apagar a conta.

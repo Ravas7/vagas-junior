@@ -47,39 +47,67 @@
     }
   }
 
-  function paintAccount(user) {
+  const btn = (label, onclick) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "link-btn";
+    b.textContent = label;
+    b.addEventListener("click", onclick);
+    return b;
+  };
+
+  function paintAccount(user, admin) {
     const box = $("#account");
     if (!user) { box.hidden = true; box.replaceChildren(); return; }
-    const out = document.createElement("button");
-    out.type = "button";
-    out.className = "link-btn";
-    out.textContent = "Sair";
-    out.addEventListener("click", () => Sync.signOut());
-    const perfil = document.createElement("button");
-    perfil.type = "button";
-    perfil.className = "link-btn";
-    perfil.textContent = "Meu perfil";
-    perfil.addEventListener("click", () => window.Perfil && window.Perfil.open());
-    box.replaceChildren(`Conectado como ${user.name || user.email} · `, perfil, " · ", out);
+    const parts = [`Conectado como ${user.name || user.email} · `,
+      btn("Meu perfil", () => window.Perfil && window.Perfil.open()), " · "];
+    if (admin && window.Admin) parts.push(window.Admin.link(), " · ");     // só o admin vê "Acessos"
+    parts.push(btn("Sair", () => Sync.signOut()));
+    box.replaceChildren(...parts);
     box.hidden = false;
+  }
+
+  /* conta criada, mas ainda sem acesso: pendente, recusado ou erro ao conferir */
+  function paintAccess(status) {
+    const box = $("#gate-access");
+    const st = status.access;
+    const show = !!status.user && ["pendente", "recusado", "erro"].includes(st);
+    box.hidden = !show;
+    if (!show) return;
+    const who = status.user.email ? ` (${status.user.email})` : "";
+    const texts = {
+      pendente: ["Pedido enviado", `Sua conta${who} foi criada e o pedido de acesso chegou para a liberação. `
+        + "Assim que for aprovado, esta tela abre sozinha. Pode fechar e voltar depois."],
+      recusado: ["Acesso não liberado", `O acesso da conta${who} não foi liberado. Fale com quem te convidou para o Ragas.`],
+      erro: ["Não deu para conferir seu acesso", status.message || "Tente de novo em instantes."],
+    };
+    const [title, body] = texts[st];
+    box.className = "gate-access is-" + st;
+    box.replaceChildren(
+      Object.assign(document.createElement("h2"), { textContent: title }),
+      Object.assign(document.createElement("p"), { textContent: body }),
+      btn("Sair e entrar com outra conta", () => Sync.signOut()));
   }
 
   function paint(status) {
     const configured = Sync.configured || !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey);
     const user = status.user;
-    // sem Firebase, ou já logado: mostra o painel
-    const open = (!configured && status.mode === "local") || !!user;
+    // sem Firebase, ou logado e liberado: mostra o painel
+    const open = (!configured && status.mode === "local") || (!!user && Sync.hasAccess());
     root.classList.toggle("gated", !open);
-    paintAccount(open && user ? user : null);
+    paintAccount(open && user ? user : null, status.access === "admin");
+    paintAccess(status);
     if (open) return;
 
-    const waiting = status.mode === "connecting";
-    const failed = status.mode === "error";
+    const blocked = !!user && ["pendente", "recusado", "erro"].includes(status.access);
+    const waiting = !blocked && (status.mode === "connecting" || (!!user && status.access === "checking"));
+    const failed = !blocked && !user && status.mode === "error";
     $("#gate-wait").hidden = !waiting;
-    $("#gate-forms").hidden = waiting || failed;
+    $("#gate-forms").hidden = waiting || failed || blocked || !!user;
     $("#gate-retry").hidden = !failed;
     if (failed) say("Não deu para carregar o login: " + status.message, "err");
     else if (status.mode === "signed-out" && status.message) say(status.message, "err");
+    else if (blocked) say("");
   }
 
   function bind() {

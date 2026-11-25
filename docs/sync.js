@@ -1,7 +1,12 @@
-/* Sincroniza as candidaturas com o Firestore (Firebase), entrando com a sua conta Google.
+/* Login, controle de acesso e sincronização com o Firestore (Firebase).
  * Opcional: sem window.FIREBASE_CONFIG o painel usa só o navegador.
  * O navegador continua sendo a cópia principal: se estiver sem internet, nada se perde,
  * e o que mudou é enviado na próxima vez que conectar.
+ *
+ * Acesso (README, passo 9): quem cria conta ganha um pedido em acesso/{uid} com status
+ * "pendente". O admin aprova no painel ("Acessos"). Só quem está aprovado (ou é o admin)
+ * lê e grava os próprios dados em users/{uid}/... Quem é admin está nas regras do
+ * Firestore, não aqui: o código do site é público.
  */
 (() => {
   "use strict";
@@ -10,14 +15,19 @@
   const BASE = `https://www.gstatic.com/firebasejs/${VERSION}/`;
   const listeners = new Set();
   const Sync = {
-    status: { mode: "local", user: null, message: "" },   // local | signed-out | connecting | synced | error
+    // mode: local | signed-out | connecting | synced | error
+    // access: "" | checking | admin | aprovado | pendente | recusado | erro
+    status: { mode: "local", user: null, message: "", access: "" },
     configured: false,
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+    hasAccess: () => ["admin", "aprovado"].includes(Sync.status.access),
     init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile,
+    watchRequests, decide,
   };
   window.Sync = Sync;
 
-  let fb = null, auth = null, db = null, col = null, unsub = null, store = null, user = null;
+  let fb = null, auth = null, db = null, col = null, store = null, user = null;
+  let unsubData = null, unsubAccess = null, pendingName = "";
 
   function set(next) {
     Sync.status = { ...Sync.status, ...next };
@@ -84,14 +94,80 @@
     fb.au.onAuthStateChanged(auth, onUser, (err) => set({ mode: "error", message: friendly(err) }));
   }
 
-  function onUser(u) {
-    if (unsub) { unsub(); unsub = null; }
-    user = u;
-    if (!u) { col = null; set({ mode: "signed-out", user: null, message: "" }); return; }
+  /* ---------- quem entrou: primeiro o acesso, depois os dados ---------- */
+  function stopAll() {
+    if (unsubData) { unsubData(); unsubData = null; }
+    if (unsubAccess) { unsubAccess(); unsubAccess = null; }
+    col = null;
+  }
 
-    set({ mode: "connecting", user: { uid: u.uid, email: u.email || "", name: u.displayName || "" }, message: "" });
+  function onUser(u) {
+    stopAll();
+    user = u;
+    if (!u) { set({ mode: "signed-out", user: null, message: "", access: "" }); return; }
+    set({ mode: "connecting", user: { uid: u.uid, email: u.email || "", name: u.displayName || pendingName || "" },
+      message: "", access: "checking" });
+    watchAccess(u);
+  }
+
+  /* O admin consegue listar todos os pedidos; os outros não (regra do Firestore). */
+  async function isAdmin() {
+    try {
+      await fb.fs.getDocs(fb.fs.query(fb.fs.collection(db, "acesso"), fb.fs.limit(1)));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  /* Regras antigas (sem a coleção acesso): quem já lia os próprios dados continua lendo. */
+  async function legacyAccess(u) {
+    try {
+      await fb.fs.getDoc(fb.fs.doc(db, "users", u.uid, "perfil", "atual"));
+      return true;
+    } catch (err) {
+      return false;
+    }
+  }
+
+  function watchAccess(u) {
+    const ref = fb.fs.doc(db, "acesso", u.uid);
+    let asked = false;
+    unsubAccess = fb.fs.onSnapshot(ref, async (snap) => {
+      if (user !== u) return;
+      if (!snap.exists()) {
+        if (await isAdmin()) return grant(u, "admin");
+        if (asked) return;
+        asked = true;                                      // pede acesso uma vez; o snapshot volta com "pendente"
+        try {
+          await fb.fs.setDoc(ref, {
+            email: u.email || "", nome: (u.displayName || pendingName || "").slice(0, 60),
+            status: "pendente", pedidoEm: fb.fs.serverTimestamp(),
+          });
+        } catch (err) {
+          console.warn(err);
+          set({ access: "erro", message: friendly(err) });
+        }
+        return;
+      }
+      const st = snap.data().status;
+      if (st === "aprovado") return grant(u, "aprovado");
+      if (unsubData) { unsubData(); unsubData = null; col = null; }   // foi bloqueado agora
+      set({ access: st === "recusado" ? "recusado" : "pendente", mode: "connecting" });
+    }, async (err) => {
+      if (user !== u) return;
+      if (await legacyAccess(u)) return grant(u, "aprovado");
+      console.warn(err);
+      set({ access: "erro", message: friendly(err) });
+    });
+  }
+
+  function grant(u, access) {
+    if (user !== u) return;
+    set({ access });
+    if (unsubData) return;
     col = fb.fs.collection(db, "users", u.uid, "candidaturas");
-    unsub = fb.fs.onSnapshot(col, (snap) => {
+    unsubData = fb.fs.onSnapshot(col, (snap) => {
       const remote = snap.docs.map((d) => d.data());
       store.mergeRemote(remote).forEach(push);           // o que é mais novo aqui sobe para a nuvem
       set({ mode: "synced", message: "" });
@@ -105,6 +181,24 @@
       .catch((err) => set({ mode: "error", message: friendly(err) }));
   }
 
+  /* ---------- admin: pedidos de acesso ---------- */
+  /* Chama fn com a lista de pedidos sempre que muda. Devolve a função para parar. */
+  function watchRequests(fn) {
+    if (!db || Sync.status.access !== "admin") return () => {};
+    return fb.fs.onSnapshot(fb.fs.collection(db, "acesso"), (snap) => {
+      fn(snap.docs.map((d) => {
+        const x = d.data();
+        const when = x.pedidoEm && x.pedidoEm.toDate ? x.pedidoEm.toDate() : null;
+        return { uid: d.id, email: x.email || "", nome: x.nome || "", status: x.status || "pendente", pedidoEm: when };
+      }));
+    }, (err) => console.warn("pedidos de acesso:", err));
+  }
+
+  async function decide(uid, status) {
+    await fb.fs.updateDoc(fb.fs.doc(db, "acesso", uid), { status, decididoEm: fb.fs.serverTimestamp() });
+  }
+
+  /* ---------- entrar e sair ---------- */
   async function signIn() {
     if (!auth) return;
     try {
@@ -127,11 +221,17 @@
 
   async function signUpEmail(name, email, password) {
     if (!auth) throw { code: "auth/network-request-failed" };
+    pendingName = name || "";                             // o pedido de acesso nasce antes do nome ser gravado
     const cred = await fb.au.createUserWithEmailAndPassword(auth, email, password);
     if (name) {
       await fb.au.updateProfile(cred.user, { displayName: name });
       set({ user: { uid: cred.user.uid, email: cred.user.email || email, name } });
     }
+  }
+
+  async function resetPassword(email) {
+    if (!auth) throw { code: "auth/network-request-failed" };
+    await fb.au.sendPasswordResetEmail(auth, email);
   }
 
   /* Perfil: um documento só, em users/{uid}/perfil/atual. null = ainda não tem. */
@@ -148,10 +248,5 @@
     const ref = profileRef();
     if (!ref) throw { code: "auth/network-request-failed" };
     await fb.fs.setDoc(ref, JSON.parse(JSON.stringify(profile)));
-  }
-
-  async function resetPassword(email) {
-    if (!auth) throw { code: "auth/network-request-failed" };
-    await fb.au.sendPasswordResetEmail(auth, email);
   }
 })();

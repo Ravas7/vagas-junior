@@ -258,7 +258,7 @@
 
   /* quando alguém entra: usa o perfil guardado aqui, confere o da nuvem; sem nenhum, abre o formulário */
   Sync.onStatus(async (s) => {
-    const id = s.user && s.user.uid;
+    const id = s.user && Sync.hasAccess() ? s.user.uid : null;      // sem acesso liberado: nada de perfil
     if (id === uid) return;
     uid = id || null;
     if (!uid) { setCurrent(null); return; }
