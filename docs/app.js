@@ -326,13 +326,13 @@
     const newCount = list.filter((j) => isNew(j) && j.active).length;
     const cards = [
       { label: "Na lista", value: list.length, sub: newCount ? `${newCount} de hoje ou ontem` : "com os filtros atuais", tone: "main" },
-      { label: "Novas", value: count({ onlyNew: true }), sub: "chegaram nos últimos 7 dias", tone: "amber",
+      { label: "Novas", value: count({ onlyNew: true }), sub: "chegaram nos últimos 7 dias", tone: "green",
         on: $("#only-new").checked, toggle: () => { $("#only-new").checked = !$("#only-new").checked; } },
       { label: "Remotas", value: count({ wp: ["remoto"] }), sub: "trabalho de casa", tone: "teal",
         on: onlyRemote, toggle: () => { $$('input[name="wp"]').forEach((i) => (i.checked = !onlyRemote && i === remote)); } },
       { label: "Grandes empresas", value: count({ onlyBig: true }), sub: "e multinacionais", tone: "ink",
         on: $("#only-big").checked, toggle: () => { $("#only-big").checked = !$("#only-big").checked; } },
-      { label: "Notícias", value: count({ tipo: "noticia" }), sub: "de processos seletivos", tone: "violet",
+      { label: "Notícias", value: count({ tipo: "noticia" }), sub: "de processos seletivos", tone: "pink",
         on: f.tipo === "noticia", toggle: () => { $("#tipo").value = f.tipo === "noticia" ? "" : "noticia"; } },
     ];
     $("#kpis").replaceChildren(...cards.map((c) => {
