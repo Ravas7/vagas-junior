@@ -34,7 +34,9 @@ def _count(n: int, one: str, many: str) -> str:
 
 
 def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
-                  sender: str, recipient: str, today_label: str) -> EmailMessage:
+                  sender: str, recipient: str, today_label: str,
+                  greeting: str = "", footer: str = "") -> EmailMessage:
+    """greeting/footer: usados no aviso por pessoa ("Olá, Ana" / "Para parar, use Meu perfil")."""
     vagas_all = [j for j in jobs if j.tipo != "noticia"]
     news_all = [j for j in jobs if j.tipo == "noticia"]
     vagas = vagas_all[: cfg.get("max_per_email", 40)]
@@ -54,7 +56,7 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
     msg["To"] = recipient
 
     # --- texto simples ---
-    lines = [f"{headline}.", ""]
+    lines = ([greeting, ""] if greeting else []) + [f"{headline}.", ""]
     for j in vagas:
         tag = (" [grande empresa]" if j.grande else "") + (f" [R$ {j.salary:,}]".replace(",", ".") if j.salary else "")
         lines += [j.title, f"{j.company}{tag} | {_where(j)}", j.url, ""]
@@ -66,6 +68,8 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
         lines.append(f"+ {hidden} no painel.")
     if dashboard_url:
         lines.append(f"Painel: {dashboard_url}")
+    if footer:
+        lines += ["", footer]
     msg.set_content("\n".join(lines))
 
     # --- HTML ---
@@ -89,7 +93,7 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
         meta = " &middot; ".join(x for x in (escape(SOURCE_LABEL.get(j.source, j.source)), posted, why) if x)
         return f"""
 <tr><td style="padding:14px 0;border-bottom:1px solid #E3E8EE">
-  <a href="{escape(j.url, quote=True)}" style="font-size:16px;font-weight:600;color:#0B5563;text-decoration:none">{escape(j.title)}</a><br>
+  <a href="{escape(j.url, quote=True)}" style="font-size:16px;font-weight:600;color:#037A46;text-decoration:none">{escape(j.title)}</a><br>
   <span style="font-size:14px;color:#1B2A3B">{second}</span> {badges}<br>
   <span style="font-size:12px;color:#5B6B7B">{meta}</span>
 </td></tr>"""
@@ -100,15 +104,21 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
                  'Processos seletivos nas notícias</h2></td></tr>' + "".join(row(j) for j in news))
     more = f'<p style="font-size:14px;color:#5B6B7B">Mais {hidden} no painel.</p>' if hidden > 0 else ""
     button = (f'<p style="margin:22px 0 0"><a href="{escape(dashboard_url, quote=True)}" '
-              'style="background:#0B5563;color:#fff;padding:10px 16px;border-radius:6px;'
+              'style="background:#00C060;color:#03140B;font-weight:700;padding:10px 16px;border-radius:6px;'
               'text-decoration:none;font-size:14px">Abrir o painel</a></p>') if dashboard_url else ""
+    greet_row = (f'<tr><td style="padding:14px 0 0;font-size:15px;color:#1B2A3B">{escape(greeting)}</td></tr>'
+                 if greeting else "")
+    foot_row = (f'<tr><td style="padding:22px 0 0;font-size:12px;color:#5B6B7B;border-top:1px solid #E3E8EE">'
+                f'{escape(footer)}</td></tr>' if footer else "")
     html = f"""<!doctype html><html lang="pt-BR"><body style="margin:0;background:#F3F6F8;font-family:Arial,Helvetica,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:24px 12px">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border-radius:8px;padding:8px 24px 24px">
-<tr><td style="padding:20px 0 0"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:#F2A900;color:#0F1B2D;font-size:13px;font-weight:700;letter-spacing:-0.01em">ragas</span> <span style="font-size:12px;color:#5B6B7B">central de vagas</span></td></tr>
+<tr><td style="padding:20px 0 0"><span style="display:inline-block;padding:4px 10px;border-radius:999px;background:#00C060;color:#03140B;font-size:13px;font-weight:700;letter-spacing:-0.01em">ragas</span> <span style="font-size:12px;color:#5B6B7B">central de vagas</span></td></tr>
+{greet_row}
 <tr><td style="padding:12px 0 4px"><h1 style="margin:0;font-size:22px;color:#0F1B2D">{escape(headline)}</h1></td></tr>
 {body}
 <tr><td>{more}{button}</td></tr>
+{foot_row}
 </table></td></tr></table></body></html>"""
     msg.add_alternative(html, subtype="html")
     return msg

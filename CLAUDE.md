@@ -29,6 +29,7 @@ vagas/             coletor em Python 3.11+, só biblioteca padrão
   emailer.py       monta e envia o e-mail
   runner.py        comandos run, check, perfil e avisos
   firebase.py      robô lê o Firebase (liberados e perfis) para os avisos por pessoa
+  avisos.py        quem recebe o quê: vagas novas filtradas pelo perfil de cada pessoa
 docs/              painel em HTML, CSS e JS puro (sem build)
   app.js           lista de vagas, abas, filtros
   store.js         regras do quadro de candidaturas
@@ -45,7 +46,7 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 179 testes, todos offline
+python -m pytest -q                  # 189 testes, todos offline
 node --test tests/store.test.js tests/perfil.test.js   # 27 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
@@ -53,6 +54,7 @@ python -m vagas check --source gupy  # uma fonte só
 python -m vagas run                  # coleta de verdade, salva e envia e-mail
 python -m vagas perfil               # regrava docs/perfil-padrao.json depois de mudar o [filter]
 python -m vagas avisos               # robô entra no Firebase e lista quem receberia aviso (não envia)
+python -m vagas avisos --previa      # salva em out/ o aviso de cada pessoa (últimos 3 dias), sem enviar
 ```
 
 Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para mudanças visuais em `docs/`, abra `docs/index.html` por um servidor local (`python -m http.server -d docs 8000`) e confira no navegador, no tamanho de computador e de celular (390px).
@@ -89,7 +91,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - Robô coleta mais amplo; cada pessoa filtra no painel pelo próprio perfil.
    - (feito) Acesso por pedido: quem cria conta fica pendente em `acesso/{uid}`; o admin libera em "Acessos". Regras no README, passo 9.
    - (feito) Cadastro com e-mail e senha, além do Google.
-   - Aviso de vagas novas por pessoa, por e-mail ou Telegram (a pessoa escolhe). Em andamento: etapa A (robô lê o Firebase com a conta `FIREBASE_ROBO_EMAIL`/`FIREBASE_ROBO_SENHA`) feita; faltam B (e-mail por pessoa), C (opções no perfil) e D (Telegram).
+   - Aviso de vagas novas por pessoa, por e-mail ou Telegram (a pessoa escolhe). Em andamento: A (robô lê o Firebase com a conta `FIREBASE_ROBO_EMAIL`/`FIREBASE_ROBO_SENHA`) e B (e-mail por pessoa; o e-mail do config.toml só sai se o Firebase falhar) feitas; faltam C (opções no perfil) e D (Telegram).
    - Painel instalável no celular (PWA).
    - Página curta sobre quais dados são guardados e como apagar a conta.
 7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.

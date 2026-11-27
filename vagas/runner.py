@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sys
 import tomllib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import emailer, filters, firebase, storage
+from . import avisos, emailer, filters, firebase, storage
 from .http import SourceError
 from .models import Job
 from .sources import REGISTRY
@@ -112,8 +113,19 @@ def run(cfg: dict, send_email: bool = True) -> int:
          if j.active and j.padrao and not j.notified and j.score >= ecfg.get("min_score", 0)),
         key=lambda j: (j.score, j.first_seen), reverse=True,
     )
+    # --- avisos por pessoa (perfil de cada um no Firebase) ---
+    people = load_people()
+    user, password, to = emailer.credentials()
+    plans = avisos.plan(people or [], list(jobs.values()), {j.id for j in new}, today, avisos.is_evening(now, cfg))
+    send_avisos(plans, ecfg, cfg, send_email, now)
+    if avisos.covers(people, to):
+        # o dono já recebe pelo próprio perfil: o e-mail do config.toml não sai (não duplica)
+        for j in pending:
+            j.notified = True
+        log(f"E-mail do config.toml não enviado: {to} já recebe pelo perfil.")
+        pending = []
+
     if send_email and ecfg.get("enabled", True) and (pending or ecfg.get("send_when_empty", False)):
-        user, password, to = emailer.credentials()
         if not (user and password):
             log("E-mail não enviado: defina EMAIL_USER e EMAIL_APP_PASSWORD.")
         elif pending:
@@ -183,6 +195,51 @@ def write_profile(cfg: dict, path: str = PROFILE_PATH) -> int:
     return 0
 
 
+def load_people() -> list | None:
+    """Pessoas liberadas e perfis, pelo Firebase. None = sem Firebase (vale só o e-mail do config.toml)."""
+    try:
+        return firebase.recipients(firebase.Client.login())
+    except firebase.FirebaseSkipped as exc:
+        log(f"Avisos por pessoa desligados: {exc}.")
+    except SourceError as exc:
+        log(f"AVISO: Firebase indisponível, avisos por pessoa ficam para a próxima coleta ({exc})")
+    return None
+
+
+def _slug(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", text.lower()).strip("-") or "pessoa"
+
+
+def send_avisos(plans: list, ecfg: dict, cfg: dict, send_email: bool, now: datetime) -> None:
+    """Manda (ou, sem envio, salva em out/) um e-mail por pessoa com as vagas do perfil dela."""
+    if not plans:
+        log("Avisos por pessoa: ninguém com vaga nova que combine.")
+        return
+    user, password, _ = emailer.credentials()
+    day = now.strftime("%d/%m")
+    if not send_email:
+        out = Path("out")
+        out.mkdir(exist_ok=True)
+    for pl in plans:
+        p = pl.person
+        msg = emailer.build_message(pl.jobs, ecfg, dashboard_url(cfg), user or "voce@exemplo.com", p.email, day,
+                                    greeting=avisos.greeting(p, pl.kind), footer=avisos.FOOTER)
+        label = f"{p.nome or p.email} ({len(pl.jobs)} itens)"
+        if not send_email:
+            name = out / f"aviso_{_slug(p.nome or p.email)}.html"
+            name.write_text(msg.get_body(("html",)).get_content(), encoding="utf-8")
+            log(f"Prévia do aviso de {label} salva em {name}")
+            continue
+        if not (ecfg.get("enabled", True) and user and password):
+            log("Avisos não enviados: defina EMAIL_USER e EMAIL_APP_PASSWORD.")
+            return
+        try:
+            emailer.send(msg, user, password, ecfg.get("smtp_host", "smtp.gmail.com"), int(ecfg.get("smtp_port", 465)))
+            log(f"Aviso enviado para {label}")
+        except Exception as exc:  # noqa: BLE001 - uma pessoa com problema não derruba as outras
+            log(f"ERRO ao enviar aviso para {p.email}: {type(exc).__name__}: {exc}")
+
+
 def matches_for(job: Job, perfil: dict | None, fcfg: dict) -> bool:
     """A vaga (já salva no jobs.json) combina com o perfil? Sem perfil, vale o do config.toml."""
     if perfil is None:
@@ -192,9 +249,10 @@ def matches_for(job: Job, perfil: dict | None, fcfg: dict) -> bool:
     return filters.evaluate_profile(job, filters.base_from_job(job), perfil).accepted
 
 
-def avisos(cfg: dict) -> int:
+def cmd_avisos(cfg: dict, previa: bool = False) -> int:
     """Diagnóstico dos avisos por pessoa: entra no Firebase como robô e mostra quem
-    receberia e quantas vagas ativas combinam com cada perfil. Não envia nada."""
+    receberia e quantas vagas ativas combinam com cada perfil. Não envia nada.
+    Com previa=True, monta o aviso de cada pessoa com o que chegou nos últimos 3 dias e salva em out/."""
     fcfg = cfg.get("filter", {})
     try:
         client = firebase.Client.login()
@@ -215,6 +273,13 @@ def avisos(cfg: dict) -> int:
         noticias = len(hits) - vagas
         log(f"  {r.nome or '(sem nome)'} <{r.email}> | {perfil} | combinam {vagas} {'vaga' if vagas == 1 else 'vagas'}"
             f" e {noticias} {'notícia' if noticias == 1 else 'notícias'} ativas")
+    if previa:
+        now = now_local(cfg)
+        today = now.strftime("%Y-%m-%d")
+        since = (now - timedelta(days=2)).strftime("%Y-%m-%d")           # hoje e os 2 dias anteriores
+        todays = {j.id for j in jobs if (j.first_seen or "") >= since}
+        log(f"\nPrévia com as {len(todays)} que chegaram nos últimos 3 dias, como se fossem novas:")
+        send_avisos(avisos.plan(people, jobs, todays, today, evening=True), cfg.get("email", {}), cfg, False, now)
     return 0
 
 
@@ -228,7 +293,8 @@ def main(argv: list[str] | None = None) -> int:
     p_check = sub.add_parser("check", help="testa as fontes e o filtro sem salvar nada")
     p_check.add_argument("--source", help="testar só uma fonte (gupy, adzuna...)")
     sub.add_parser("perfil", help=f"grava {PROFILE_PATH} (perfil padrão e opções do formulário)")
-    sub.add_parser("avisos", help="testa a leitura do Firebase: quem recebe aviso e quantas vagas combinam (não envia)")
+    p_av = sub.add_parser("avisos", help="testa a leitura do Firebase: quem recebe aviso e quantas vagas combinam (não envia)")
+    p_av.add_argument("--previa", action="store_true", help="salva em out/ o aviso de cada pessoa com o que chegou nos últimos 3 dias")
     args = parser.parse_args(argv)
 
     load_dotenv()
@@ -236,7 +302,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "run":
         return run(cfg, send_email=not args.no_email)
     if args.cmd == "avisos":
-        return avisos(cfg)
+        return cmd_avisos(cfg, args.previa)
     if args.cmd == "perfil":
         return write_profile(cfg)
     return check(cfg, args.source)

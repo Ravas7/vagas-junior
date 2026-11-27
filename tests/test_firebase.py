@@ -102,7 +102,7 @@ def test_comando_avisos_lista_quem_recebe(fake, monkeypatch, tmp_path, capsys):
         {"id": "g:2", "source": "g", "title": "Desenvolvedor Pleno", "company": "B", "url": "u", "active": True,
          "padrao": False, "nivel": "pleno", "workplace": "remoto"},
     ]}), encoding="utf-8")
-    assert runner.avisos({"storage": {"path": str(jobs)}, "filter": {}}) == 0
+    assert runner.cmd_avisos({"storage": {"path": str(jobs)}, "filter": {}}) == 0
     out = capsys.readouterr().out
     assert "2 pessoas liberadas" in out
     assert "Eu <eu@x.com> | sem perfil (vale o do config.toml) | combinam 1 vaga " in out     # só a júnior (padrão)
