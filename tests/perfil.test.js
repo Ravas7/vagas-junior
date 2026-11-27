@@ -103,3 +103,11 @@ test("paridade também com o perfil no formato salvo pelo formulário (normalize
     });
   }
 });
+
+test("aviso de vagas: padrão ligado, e-mail, a cada coleta; valores estranhos voltam ao padrão", () => {
+  assert.deepEqual(P.normalize({}).aviso, { ativo: true, canal: "email", frequencia: "coleta" });
+  assert.deepEqual(P.normalize({ aviso: { ativo: false, frequencia: "diario" } }).aviso,
+    { ativo: false, canal: "email", frequencia: "diario" });
+  assert.deepEqual(P.normalize({ aviso: { canal: "pombo", frequencia: "semanal" } }).aviso,
+    { ativo: true, canal: "email", frequencia: "coleta" });
+});

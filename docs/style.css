@@ -629,6 +629,7 @@ details.more .why { color: var(--muted); font-size: 13px; }
 .pf-chip:hover span { border-color: var(--accent); }
 .pf-chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .pf-chip input:checked + span::before { content: "✓"; width: auto; margin-right: 6px; }
+.pf-chip.is-off { cursor: not-allowed; opacity: .55; }
 .pf-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pf-check { align-items: flex-start; }
 .pf-check input { margin-top: 3px; flex: none; }

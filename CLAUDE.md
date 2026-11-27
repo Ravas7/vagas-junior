@@ -47,7 +47,7 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 
 ```bash
 python -m pytest -q                  # 189 testes, todos offline
-node --test tests/store.test.js tests/perfil.test.js   # 27 testes do quadro e do perfil (Node 20+)
+node --test tests/store.test.js tests/perfil.test.js   # 28 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só
@@ -91,7 +91,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - Robô coleta mais amplo; cada pessoa filtra no painel pelo próprio perfil.
    - (feito) Acesso por pedido: quem cria conta fica pendente em `acesso/{uid}`; o admin libera em "Acessos". Regras no README, passo 9.
    - (feito) Cadastro com e-mail e senha, além do Google.
-   - Aviso de vagas novas por pessoa, por e-mail ou Telegram (a pessoa escolhe). Em andamento: A (robô lê o Firebase com a conta `FIREBASE_ROBO_EMAIL`/`FIREBASE_ROBO_SENHA`) e B (e-mail por pessoa; o e-mail do config.toml só sai se o Firebase falhar) feitas; faltam C (opções no perfil) e D (Telegram).
+   - Aviso de vagas novas por pessoa, por e-mail ou Telegram (a pessoa escolhe). Em andamento: A (robô lê o Firebase com a conta `FIREBASE_ROBO_EMAIL`/`FIREBASE_ROBO_SENHA`) e B (e-mail por pessoa; o e-mail do config.toml só sai se o Firebase falhar) e C (opções no Meu perfil, campo `aviso` do perfil: ativo, canal, frequência) feitas; falta D (Telegram, hoje aparece como "em breve").
    - Painel instalável no celular (PWA).
    - Página curta sobre quais dados são guardados e como apagar a conta.
 7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.

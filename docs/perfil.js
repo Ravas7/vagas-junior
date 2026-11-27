@@ -20,6 +20,18 @@
   const SUBAREAS = ["dev", "dados", "qa", "devops", "seguranca", "infra", "suporte", "hardware"];
   const CORRELATAS = ["dados", "qa", "devops", "seguranca", "infra"];
   const INGLES = ["basico", "intermediario", "qualquer"];
+  const CANAIS = ["email", "telegram"];
+  const FREQUENCIAS = ["coleta", "diario"];
+
+  /* Aviso de vagas novas (lido pelo robô em vagas/avisos.py, prefs). Padrão: ligado, e-mail, a cada coleta. */
+  function aviso(a) {
+    a = a && typeof a === "object" ? a : {};
+    return {
+      ativo: a.ativo !== false,
+      canal: CANAIS.includes(a.canal) ? a.canal : "email",
+      frequencia: FREQUENCIAS.includes(a.frequencia) ? a.frequencia : "coleta",
+    };
+  }
 
   const list = (v) => (Array.isArray(v) ? v : []).map((x) => String(x).trim()).filter(Boolean);
   const unique = (a) => [...new Set(a)];
@@ -57,6 +69,7 @@
       bonus_grande: int(p.bonus_grande, 10),
       bonus_tecnologia: int(p.bonus_tecnologia, 10),
       nota_minima: int(p.nota_minima, 40),
+      aviso: aviso(p.aviso),
     };
   }
 
@@ -292,6 +305,9 @@
   }
   const chip = (name, value, label, checked) =>
     h("label", { class: "pf-chip" }, h("input", { type: "checkbox", name, value, checked }), h("span", {}, label));
+  const radio = (name, value, label, checked, disabled = false) =>
+    h("label", { class: "pf-chip" + (disabled ? " is-off" : "") },
+      h("input", { type: "radio", name, value, checked, disabled }), h("span", {}, label));
   const check = (name, label, checked, hint) =>
     h("label", { class: "check pf-check" }, h("input", { type: "checkbox", name, checked }),
       h("span", {}, label, hint && h("small", {}, hint)));
@@ -368,6 +384,20 @@
         check("so_minhas_techs", "Mostrar só vagas que citam uma das minhas tecnologias", p.so_minhas_techs,
           "Cuidado: muitas vagas júnior não citam a tecnologia.")),
 
+      h("fieldset", { class: "pf-sec" }, h("legend", {}, "Avisos de vagas novas"),
+        check("aviso_ativo", "Me avisar quando chegar vaga que combina comigo", p.aviso.ativo,
+          "O robô procura vagas duas vezes por dia. Se nada combinar, você não recebe nada."),
+        h("div", { "data-show": "aviso" },
+          h("p", { class: "pf-label" }, "Por onde"),
+          h("div", { class: "pf-chips" },
+            radio("aviso_canal", "email", "E-mail", p.aviso.canal === "email"),
+            radio("aviso_canal", "telegram", "Telegram (em breve)", false, true)),
+          h("p", { class: "pf-label" }, "Com que frequência"),
+          h("div", { class: "pf-chips" },
+            radio("aviso_frequencia", "coleta", "A cada coleta", p.aviso.frequencia === "coleta"),
+            radio("aviso_frequencia", "diario", "Resumo diário", p.aviso.frequencia === "diario")),
+          h("p", { class: "pf-hint" }, "A cada coleta: de manhã e à noite, só o que for novo. Resumo diário: um e-mail só, à noite, com as vagas do dia."))),
+
       h("p", { class: "gate-msg is-err pf-errors", role: "alert" }),
       h("div", { class: "kb-dialog-actions pf-actions" },
         !firstTime && h("button", { class: "kb-btn", type: "button", onclick: () => dialog.close() }, "Cancelar"),
@@ -391,6 +421,11 @@
       suporte_sem_salario: on("suporte_sem_salario"),
       tecnologias: vals("tecnologias"),
       so_minhas_techs: on("so_minhas_techs"),
+      aviso: {
+        ativo: on("aviso_ativo"),
+        canal: (f.querySelector('input[name="aviso_canal"]:checked') || {}).value || "email",
+        frequencia: (f.querySelector('input[name="aviso_frequencia"]:checked') || {}).value || "coleta",
+      },
     };
   }
 
@@ -400,6 +435,7 @@
     const showIf = (sel, cond) => f.querySelectorAll(sel).forEach((el) => { el.hidden = !cond; });
     showIf('[data-show="presencial"]', f.elements.presencial.checked);
     showIf('[data-show="exterior"]', f.elements.exterior.checked);
+    showIf('[data-show="aviso"]', f.elements.aviso_ativo.checked);
     showIf('[data-show="area-suporte"]', !!f.querySelector('input[name="areas"][value="suporte"]:checked'));
     showIf('[data-show-uf="BA"]', f.elements.estado.value === "BA");
     f.querySelector(".pf-errors").textContent = "";
