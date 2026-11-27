@@ -77,9 +77,21 @@ def decode_fields(fields: dict) -> dict:
 class Client:
     """Conversa com o Firestore como a conta do robô."""
 
-    def __init__(self, project: str, token: str):
+    def __init__(self, project: str, token: str, email: str = ""):
         self.base = FIRESTORE.format(project=project)
         self.headers = {"Authorization": f"Bearer {token}"}
+        self.email = email
+
+    def _get(self, path: str, params: dict | None = None, retries: int = 2):
+        try:
+            return get_json(f"{self.base}/{path}", params, headers=self.headers, retries=retries)
+        except SourceError as exc:
+            if str(exc).startswith("HTTP 403"):
+                raise SourceError(
+                    f"o robô entrou como {self.email or '(e-mail desconhecido)'}, mas a regra do Firestore não deixou ler "
+                    f"'{path}'. Confira se a regra nova foi publicada e se ROBO_EMAIL na regra é exatamente esse e-mail, "
+                    "em minúsculas (README, passo 9).") from None
+            raise
 
     @classmethod
     def login(cls, email: str = "", password: str = "", config_path: str | Path = "docs/firebase-config.js"):
@@ -98,14 +110,14 @@ class Client:
         token = data.get("idToken") if isinstance(data, dict) else None
         if not token:
             raise SourceError("o Firebase não devolveu o acesso do robô")
-        return cls(cfg["projectId"], token)
+        return cls(cfg["projectId"], token, data.get("email") or email)
 
     def list_docs(self, collection: str) -> list[tuple[str, dict]]:
         """Todos os documentos de uma coleção: [(id, campos)]."""
         out, page = [], None
         while True:
             params = {"pageSize": 300, **({"pageToken": page} if page else {})}
-            data = get_json(f"{self.base}/{collection}", params, headers=self.headers)
+            data = self._get(collection, params)
             for doc in data.get("documents", []):
                 out.append((doc["name"].rsplit("/", 1)[-1], decode_fields(doc.get("fields", {}))))
             page = data.get("nextPageToken")
@@ -115,7 +127,7 @@ class Client:
     def get_doc(self, path: str) -> dict | None:
         """Um documento (None se não existe)."""
         try:
-            doc = get_json(f"{self.base}/{path}", headers=self.headers, retries=1)
+            doc = self._get(path, retries=1)
         except SourceError as exc:
             if str(exc).startswith("HTTP 404"):
                 return None
