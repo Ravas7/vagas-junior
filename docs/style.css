@@ -467,7 +467,7 @@ details.more .why { color: var(--muted); font-size: 13px; }
 .kb-card.is-dragging { opacity: .45; }
 .kb-top { display: flex; gap: 8px; align-items: flex-start; }
 .kb-ttl { flex: 1; min-width: 0; }
-.kb-card h4 { margin: 0; font: 600 15px/1.3 var(--body); overflow-wrap: anywhere; }
+.kb-card h4 { margin: 0; font: 600 14px/1.3 var(--body); overflow-wrap: break-word; hyphens: auto; }
 .kb-card h4 a { text-decoration: none; }
 .kb-card h4 a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .kb-co { margin: 2px 0 0; font-size: 13px; color: var(--muted); }
@@ -853,7 +853,142 @@ html.gated body {
 }
 @keyframes sheet { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
 
+/* =====================================================================
+   Movimento: o site reage ao mouse e ao toque.
+   Tudo some com "reduzir movimento" (regra no fim do arquivo).
+   ===================================================================== */
+:root { --ease: cubic-bezier(.2, .8, .2, 1); --spring: cubic-bezier(.34, 1.56, .64, 1); }
+
+/* botões: sobem um pouco no hover e afundam no clique */
+.btn, .kb-btn, .acct-btn, .filters-toggle, .kpi, .kb-chip, .theme button, .gate-tabs [role="tab"], .tabs [role="tab"] {
+  transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .15s, background-color .15s, color .15s;
+}
+.btn:hover, .kb-btn:hover, .filters-toggle:hover { transform: translateY(-1px); }
+.btn:active, .kb-btn:active, .filters-toggle:active, .acct-btn:active, .kb-chip:active { transform: translateY(0) scale(.97); transition-duration: .06s; }
+.btn:not(.primary):not(.quiet):hover, .kb-btn:not(.primary):hover { box-shadow: 0 6px 16px -10px var(--glow-c); }
+.btn.quiet:hover { color: var(--ink); }
+
+/* logo: o pin balança de leve */
+.logo-link:hover .pin, .gate-bar .logo:hover .pin { animation: wiggle .6s var(--spring); }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-9deg) translateY(-2px); } 60% { transform: rotate(6deg); } }
+
+/* cartões de vaga: sobem e brilham; entram em cascata */
+.job { transition: transform .22s var(--ease), box-shadow .22s var(--ease), border-color .2s; }
+.job:hover { transform: translateY(-2px); box-shadow: 0 14px 30px -18px rgb(0 0 0 / .5), 0 0 28px -14px var(--glow-c); }
+.job.rise { animation: rise .42s var(--ease) both; animation-delay: calc(var(--i, 0) * 35ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { transform: none; } }   /* termina na opacidade normal do cartão */
+.job h3 a { transition: color .15s; }
+.job h3 a:hover { color: var(--accent); }
+details.more summary { list-style: none; display: inline-flex; align-items: center; gap: 6px; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more summary::before {
+  content: ""; width: 7px; height: 7px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg); transition: transform .2s var(--ease);
+}
+details.more[open] summary::before { transform: rotate(45deg) translate(-1px, -1px); }
+
+/* cartões de resumo: sobem e acendem na cor deles */
+button.kpi:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -16px var(--tone); }
+.kpi[aria-pressed="true"] { box-shadow: 0 0 0 1px var(--tone), 0 10px 26px -16px var(--tone); }
+.kpi strong { transition: color .2s; }
+button.kpi:hover strong { color: var(--tone); }
+
+/* faixa dos 14 dias: barras crescem no hover */
+.bar i { transition: background-color .15s, transform .18s var(--ease); transform-origin: bottom; }
+.bar:hover i { transform: scaleY(1.12); }
+
+/* abas: o sublinhado acende */
+.tabs [role="tab"]:hover { color: var(--ink); }
+.tabs [role="tab"] .count { transition: transform .2s var(--spring); }
+.tabs [role="tab"]:hover .count { transform: scale(1.12); }
+
+/* menu da conta */
+.acct-item { transition: background-color .15s, color .15s, padding-left .18s var(--ease); }
+.acct-item:hover { padding-left: 16px; }
+.acct-item svg { transition: transform .2s var(--spring), color .15s; }
+.acct-item:hover svg { transform: scale(1.12); }
+
+/* escolhas do perfil: pulinho ao marcar */
+.pf-chip span { transition: background-color .15s, border-color .15s, color .15s, transform .18s var(--spring); }
+.pf-chip:active span { transform: scale(.94); }
+.pf-chip input:checked + span { animation: pick .28s var(--spring); }
+@keyframes pick { 50% { transform: scale(1.06); } }
+
+/* janelas abrem com um "pop" */
+.kb-dialog[open] { animation: pop .24s var(--ease); }
+@keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* campos: anel verde ao focar */
+.gate-form input, .kb-form input, .kb-form select, .kb-form textarea, .field select {
+  transition: border-color .15s, box-shadow .18s var(--ease);
+}
+.gate-form input:focus, .kb-form input:focus, .kb-form select:focus, .kb-form textarea:focus {
+  outline: none; border-color: var(--neon); box-shadow: 0 0 0 3px color-mix(in srgb, var(--neon) 22%, transparent);
+}
+
+/* ---------- quadro de candidaturas ---------- */
+.kb-card {
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s, opacity .2s;
+}
+.kb-card:hover {
+  transform: translateY(-3px); border-color: color-mix(in srgb, var(--neon) 50%, var(--line));
+  box-shadow: 0 14px 26px -16px rgb(0 0 0 / .55), 0 0 24px -12px var(--glow-c);
+}
+.kb-card:active { cursor: grabbing; }
+.kb-card.is-dragging {                                 /* o lugar de onde saiu fica tracejado */
+  opacity: .35; transform: scale(.97); border-style: dashed; border-color: var(--neon); box-shadow: none;
+}
+.kb-col { transition: border-color .2s, box-shadow .2s, background-color .2s; }
+.kb--dragging .kb-col:not(.is-source) { border-style: dashed; }
+.kb-col.is-over {
+  border-color: var(--neon); border-style: solid;
+  background: color-mix(in srgb, var(--neon) 7%, var(--surface));
+  box-shadow: 0 0 0 1px var(--neon), 0 0 30px -10px var(--glow-c);
+}
+.kb-slot { animation: open .18s var(--ease); }
+.kb-col.is-over .kb-slot { transform: scale(1.02); transition: transform .15s var(--ease); }
+.kb-col-head .kb-dot { transition: transform .2s var(--spring); }
+.kb-col:hover .kb-dot, .kb-col.is-over .kb-dot { transform: scale(1.35); }
+.kb-advance { transition: color .15s, transform .18s var(--ease); }
+.kb-advance:hover { transform: translateX(3px); }
+.kb-more { transition: background-color .15s, color .15s, transform .15s; }
+.kb-menu { animation: pop .16s var(--ease); transform-origin: top right; }
+
+/* o botão "⋯" fica solto no canto: o título usa a largura toda do cartão */
+.kb-top { position: relative; }
+.kb-ttl { padding-right: 24px; }
+.kb-more { position: absolute; top: -8px; right: -8px; width: 36px; height: 36px; margin: 0; }
+
+/* cartão deslizando de uma coluna para outra (View Transitions) */
+::view-transition-group(*) { animation-duration: .38s; animation-timing-function: var(--ease); }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+
+/* ---------- celular ---------- */
+@media (max-width: 860px) {
+  .job:hover { transform: none; }                     /* no toque, sem "pulo" */
+  .job:active { transform: scale(.99); }
+  .bottom-nav button { transition: color .15s, transform .15s var(--ease); }
+  .bottom-nav button:active { transform: scale(.9); }
+  .bottom-nav button[aria-current="page"] svg { animation: tap .35s var(--spring); }
+  .kb-dialog[open] { animation: sheet .26s var(--ease); }
+}
+@keyframes tap { 50% { transform: translateY(-3px) scale(1.12); } }
+@media (max-width: 860px) {
+  /* "Avançar" no celular segue o botão principal verde */
+  .kb-advance {
+    background: var(--neon); color: var(--on-neon); font-weight: 700;
+    box-shadow: 0 6px 20px -8px var(--glow-c);
+  }
+  .kb-advance:hover { transform: none; }
+  .kb-advance:active { transform: scale(.97); }
+  /* etapas roláveis sem barra de rolagem aparente */
+  .kb-tabs, .kpis { scrollbar-width: none; }
+  .kb-tabs::-webkit-scrollbar, .kpis::-webkit-scrollbar { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+  .job:hover, .kb-card:hover, button.kpi:hover, .btn:hover, .kb-btn:hover { transform: none !important; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 .pf-full { grid-column: 1 / -1; }

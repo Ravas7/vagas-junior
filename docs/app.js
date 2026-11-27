@@ -117,6 +117,9 @@
   }
   P.onChange(setProfile);
 
+  /* redesenha sem a animação de entrada (digitando na busca, salvando, ocultando) */
+  function quietly(fn) { state.quiet = true; try { fn(); } finally { state.quiet = false; } }
+
   /* ---------- filtros ---------- */
   function filters() {
     return {
@@ -193,7 +196,7 @@
     const set = (value) => () => {
       state.status[job.id] = state.status[job.id] === value ? "" : value;
       if (!state.status[job.id]) delete state.status[job.id];
-      writeStatus(); render();
+      writeStatus(); quietly(render);
     };
     const isNews = job.tipo === "noticia";
     const place = [isNews ? "" : WP[job.workplace], job.location].filter(Boolean)
@@ -272,7 +275,10 @@
           : state.tab === "all" ? "Remova algum filtro ou escolha outro dia na faixa de cima." : "Use Salvar nas vagas para listá-las aqui."),
         nothingYet && h("code", {}, "python -m vagas run")));
     } else {
-      box.append(...list.map(jobRow));
+      const rows = list.map(jobRow);
+      // entrada em cascata nas primeiras vagas (não ao digitar, salvar ou ocultar)
+      if (!state.quiet) rows.slice(0, 12).forEach((el, i) => { el.classList.add("rise"); el.style.setProperty("--i", i); });
+      box.append(...rows);
     }
   }
 
@@ -380,7 +386,7 @@
   /* ---------- eventos ---------- */
   function bind() {
     ["#q", "#uf", "#source", "#sort", "#tipo", "#area", "#local", "#only-big", "#only-new", "#show-closed", "#show-hidden"].forEach((s) =>
-      $(s).addEventListener(s === "#q" ? "input" : "change", refresh));
+      $(s).addEventListener(s === "#q" ? "input" : "change", s === "#q" ? () => quietly(refresh) : refresh));
     $$('input[name="wp"]').forEach((i) => i.addEventListener("change", refresh));
     $$('.tabs [role="tab"]').forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
     $$(".bottom-nav [data-go]").forEach((b) => b.addEventListener("click", (e) => {
@@ -461,7 +467,7 @@
     fillSelects(); bind(); renderHeader(); renderPulse(); render();
     board = window.Kanban.mount({ root: $("#board"), store, sync: window.Sync,
       query: () => norm($("#q").value).split(/\s+/).filter(Boolean) });
-    store.subscribe(() => { countApplied(); if (state.tab !== "applied") render(); });
+    store.subscribe(() => { countApplied(); if (state.tab !== "applied") quietly(render); });
     countApplied();
   });
 })();

@@ -158,6 +158,7 @@
 
       return h("article", {
         class: "kb-card" + (ui.dragId === app.id ? " is-dragging" : ""), draggable: "true", "data-id": app.id,
+        style: `view-transition-name: kb-${slug(app.id)}`,
         ondragstart: (e) => {
           ui.dragId = app.id;
           e.dataTransfer.effectAllowed = "move";
@@ -166,7 +167,7 @@
           e.currentTarget.classList.add("is-dragging");
           root.querySelector(`.kb-col[data-stage="${app.stage}"]`)?.classList.add("is-source");
         },
-        ondragend: () => { ui.dragId = null; render(); },
+        ondragend: () => { ui.dragId = null; if (ui.dropped) ui.dropped = false; else render(); },
       },
         h("div", { class: "kb-top" },
           h("div", { class: "kb-ttl" },
@@ -190,6 +191,21 @@
             ? h("button", { class: "kb-btn small", type: "button", onclick: () => store.reopen(app.id) }, "Reabrir")
             : nxt && h("button", { class: "kb-advance", type: "button", onclick: () => store.move(app.id, nxt.id) }, "Avançar: " + nxt.short),
           h("button", { class: "kb-moveclose", type: "button", onclick: () => openMove(app) }, "Mover ou encerrar")));
+    }
+
+    /* nome seguro para CSS (view-transition-name) a partir do id da vaga */
+    function slug(id) {
+      let x = 0;
+      for (const ch of String(id)) x = (x * 31 + ch.charCodeAt(0)) >>> 0;
+      return x.toString(36);
+    }
+
+    /* Mudou o quadro? Os cartões deslizam da posição antiga para a nova (Chrome, Edge, Safari).
+       Sem suporte, ou com "reduzir movimento" ligado, redesenha direto. */
+    function animated(fn) {
+      const calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!document.startViewTransition || calm || root.hidden) return fn();
+      document.startViewTransition(fn);
     }
 
     function icon(kind, size = 14) {
@@ -230,6 +246,7 @@
           e.preventDefault();
           const id = e.dataTransfer.getData("text/plain") || ui.dragId;
           ui.dragId = null;
+          ui.dropped = true;                                  // o dragend não redesenha: a animação cuida
           const app = store.get(id);
           if (app && app.stage !== stage.id) {
             if (closing) { render(); openClose(app); return; }      // precisa do motivo
@@ -309,7 +326,7 @@
 
     document.addEventListener("click", (e) => { if (ui.menu && !e.target.closest(".kb-menu")) closeMenu(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && ui.menu) closeMenu(); });
-    store.subscribe(() => render());
+    store.subscribe(() => animated(render));
     sync.onStatus(paintSync);
     render();
     return { render };
