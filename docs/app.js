@@ -234,7 +234,7 @@
         h("span", { class: "age" }, ageLabel(job)),
         h("div", { class: "actions" },
           h("button", { class: "btn", type: "button", "aria-pressed": String(st === "saved"), onclick: set("saved") }, st === "saved" ? "Salva" : "Salvar"),
-          !isNews && h("button", { class: "btn", type: "button", "aria-pressed": String(!!app), onclick: () => (app ? showTab("applied") : applyTo(job)) },
+          !isNews && h("button", { class: app ? "btn" : "btn primary", type: "button", "aria-pressed": String(!!app), onclick: () => (app ? showTab("applied") : applyTo(job)) },
             app ? "Ver no quadro" : "Marcar candidatura"),
           h("button", { class: "btn quiet", type: "button", onclick: set("hidden") }, st === "hidden" ? "Mostrar de novo" : "Ocultar"))),
       (job.snippet || why) && h("details", { class: "more" },
@@ -254,6 +254,7 @@
     const base = state.jobs.filter((j) => matches(j, f, true));
     $("#count-all").textContent = base.length;
     $("#count-saved").textContent = base.filter((j) => state.status[j.id] === "saved").length;
+    navCount("saved", $("#count-saved").textContent);
     countApplied();
 
     renderChips();
@@ -382,6 +383,11 @@
       $(s).addEventListener(s === "#q" ? "input" : "change", refresh));
     $$('input[name="wp"]').forEach((i) => i.addEventListener("change", refresh));
     $$('.tabs [role="tab"]').forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
+    $$(".bottom-nav [data-go]").forEach((b) => b.addEventListener("click", (e) => {
+      if (b.dataset.go === "perfil") { e.stopPropagation(); if (window.AccountMenu) window.AccountMenu.open(); return; }
+      showTab(b.dataset.go);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }));
     $("#reset").addEventListener("click", resetFilters);
     const toggle = $("#filters-toggle");
     toggle.addEventListener("click", () => {
@@ -409,7 +415,15 @@
   }
 
   /* ---------- candidaturas (quadro) ---------- */
-  const countApplied = () => { $("#count-applied").textContent = store.all().filter((a) => a.stage !== "encerrada").length; };
+  const countApplied = () => {
+    $("#count-applied").textContent = store.all().filter((a) => a.stage !== "encerrada").length;
+    navCount("applied", $("#count-applied").textContent);
+  };
+  /* números na barra de navegação do celular (só aparecem quando passam de zero) */
+  function navCount(key, n) {
+    const el = document.querySelector('.bn-count[data-for="' + key + '"]');
+    if (el) { el.textContent = n; el.hidden = !Number(n); }
+  }
 
   function applyTo(job) {
     store.add({ id: job.id, title: job.title, company: job.company, url: job.url, location: job.location,
@@ -420,6 +434,9 @@
   function showTab(tab) {
     state.tab = tab;
     $$('.tabs [role="tab"]').forEach((x) => x.setAttribute("aria-selected", String(x.dataset.tab === tab)));
+    $$(".bottom-nav [data-go]").forEach((x) => {
+      if (x.dataset.go === tab) x.setAttribute("aria-current", "page"); else x.removeAttribute("aria-current");
+    });
     const isBoard = tab === "applied";
     $("#board").hidden = !isBoard;
     $("#list").hidden = isBoard;

@@ -56,16 +56,52 @@
     return b;
   };
 
+  /* ---------- menu da conta (botão com as iniciais, no topo) ---------- */
+  const initials = (name, email) => {
+    const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+    if (parts.length) return (parts[0][0] + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
+    return String(email || "?")[0].toUpperCase();
+  };
+
   function paintAccount(user, admin) {
-    const box = $("#account");
-    if (!user) { box.hidden = true; box.replaceChildren(); return; }
-    const parts = [`Conectado como ${user.name || user.email} · `,
-      btn("Meu perfil", () => window.Perfil && window.Perfil.open()), " · "];
-    if (admin && window.Admin) parts.push(window.Admin.link(), " · ");     // só o admin vê "Acessos"
-    parts.push(btn("Sair", () => Sync.signOut()));
-    box.replaceChildren(...parts);
-    box.hidden = false;
+    const logged = !!user;
+    $("#acct-avatar").textContent = logged ? initials(user.name, user.email) : "";
+    $("#acct-avatar").classList.toggle("is-empty", !logged);
+    $("#acct-name").textContent = logged ? (user.name || user.email).split(/\s+/)[0] : "Menu";
+    $("#acct-btn").setAttribute("aria-label", logged ? `Conta de ${user.name || user.email}` : "Menu");
+    $("#acct-who").hidden = !logged;
+    if (logged) {
+      $("#acct-who-name").textContent = user.name || user.email;
+      $("#acct-who-email").textContent = user.name ? user.email : "";
+    }
+    $("#acct-perfil").hidden = !logged;
+    $("#acct-sair").hidden = !logged;
+    $("#acct-acessos").hidden = !(logged && admin && window.Admin);
+    if (admin && window.Admin && !$("#acct-acessos").contains(window.Admin.badge())) {
+      $("#acct-acessos").append(window.Admin.badge());
+    }
   }
+
+  function menuOpen(open) {
+    $("#acct-menu").hidden = !open;
+    $("#acct-btn").setAttribute("aria-expanded", String(open));
+    document.documentElement.classList.toggle("menu-open", open);
+    if (open) ($("#acct-menu").querySelector(".acct-item:not([hidden]), .theme button") || {}).focus?.();
+  }
+
+  function bindMenu() {
+    $("#acct-btn").addEventListener("click", (e) => { e.stopPropagation(); menuOpen($("#acct-menu").hidden); });
+    document.addEventListener("click", (e) => {
+      if (!$("#acct-menu").hidden && !e.target.closest("#acct")) menuOpen(false);
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !$("#acct-menu").hidden) { menuOpen(false); $("#acct-btn").focus(); }
+    });
+    $("#acct-perfil").addEventListener("click", () => { menuOpen(false); window.Perfil && window.Perfil.open(); });
+    $("#acct-acessos").addEventListener("click", () => { menuOpen(false); window.Admin && window.Admin.open(); });
+    $("#acct-sair").addEventListener("click", () => { menuOpen(false); Sync.signOut(); });
+  }
+  window.AccountMenu = { open: () => menuOpen(true), close: () => menuOpen(false) };
 
   /* conta criada, mas ainda sem acesso: pendente, recusado ou erro ao conferir */
   function paintAccess(status) {
@@ -155,6 +191,7 @@
   }
 
   bind();
+  bindMenu();
   Sync.onStatus(paint);
   // Firebase desligado: sync.js diz "local" logo de cara; com Firebase, espera a resposta do login
   paint(Sync.status.mode === "local" && !(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey)

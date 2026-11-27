@@ -5,7 +5,7 @@
   const C = window.Candidaturas;
   const DAY = 86400000;
   const WP = { remoto: "Remoto", hibrido: "Híbrido", presencial: "Presencial" };
-  const DOT = { inscricao: "var(--muted)", dinamica: "var(--violet)", entrevista: "var(--teal)", proposta: "var(--amber)", encerrada: "#6b7c93" };
+  const DOT = { inscricao: "var(--muted)", dinamica: "var(--violet)", entrevista: "var(--cyan)", proposta: "var(--amber)", encerrada: "#6b7c93" };
   const pad = (n) => String(n).padStart(2, "0");
   const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
@@ -254,8 +254,7 @@
       if (s.mode === "connecting") kids.push(h("span", {}, "Conectando…"));
       if (s.mode === "signed-out") kids.push(h("span", {}, "Salvo neste navegador."),
         h("button", { class: "kb-btn", type: "button", onclick: () => sync.signIn() }, "Entrar com Google para sincronizar"));
-      if (s.mode === "synced") kids.push(h("span", {}, "Sincronizado" + (s.user && s.user.email ? ` com ${s.user.email}` : "")),
-        h("button", { class: "kb-link", type: "button", onclick: () => sync.signOut() }, "Sair"));
+      if (s.mode === "synced") kids.push(h("span", {}, "Sincronizado" + (s.user && s.user.email ? ` com ${s.user.email}` : "")));   // "Sair" fica no menu da conta
       if (s.mode === "error") kids.push(h("span", { class: "kb-err" }, "Sincronização: " + s.message));
       if (s.message && s.mode === "signed-out") kids.push(h("span", { class: "kb-err" }, s.message));
       syncBox.replaceChildren(...kids);

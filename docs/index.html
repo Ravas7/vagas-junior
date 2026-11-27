@@ -2,10 +2,10 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Ragas · central de vagas</title>
   <meta name="description" content="Ragas: central de vagas de tecnologia filtradas pelo seu perfil, atualizada todo dia.">
-  <meta name="theme-color" content="#0f1b2d">
+  <meta name="theme-color" content="#070b14">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -24,7 +24,7 @@
   <main class="gate" id="gate" aria-labelledby="gate-title">
     <div class="gate-bar">
       <p class="logo">
-        <img src="ragas-pin-curto.svg" alt="" width="29" height="40">
+        <svg class="pin" viewBox="18 8 64 88" aria-hidden="true" focusable="false"><path class="pin-body" d="M50 94C50 94 20 62 20 40a30 30 0 1 1 60 0C80 62 50 94 50 94Z"/><path class="pin-r" d="M40 27V55M40 27H50a9 9 0 0 1 0 18H40M49 45L59 55"/></svg>
         <span class="logo-nome">ragas<span class="logo-tag">central de vagas</span></span>
       </p>
       <div class="theme gate-theme" role="group" aria-label="Tema">
@@ -36,6 +36,7 @@
 
     <div class="gate-wrap">
       <div class="gate-intro">
+        <p class="gate-chip">Vagas de TI para todos os níveis</p>
         <h1 id="gate-title">Vagas de tecnologia escolhidas pelo seu perfil</h1>
         <p>Estágio, júnior, pleno ou sênior. Dev, dados, QA, suporte ou hardware. Você diz o que procura e o Ragas mostra só o que serve.</p>
         <ul class="gate-points">
@@ -87,21 +88,41 @@
   </main>
 
   <header class="top">
-    <div class="top-title">
-      <h1 class="logo">
-        <a href="./" class="logo-link">
-          <img src="ragas-pin-curto.svg" alt="" width="35" height="48">
-          <span class="logo-nome">ragas<span class="logo-tag">central de vagas</span></span>
-        </a>
-      </h1>
+    <h1 class="logo">
+      <a href="./" class="logo-link">
+        <svg class="pin" viewBox="18 8 64 88" aria-hidden="true" focusable="false"><path class="pin-body" d="M50 94C50 94 20 62 20 40a30 30 0 1 1 60 0C80 62 50 94 50 94Z"/><path class="pin-r" d="M40 27V55M40 27H50a9 9 0 0 1 0 18H40M49 45L59 55"/></svg>
+        <span class="logo-nome">ragas<span class="logo-tag">central de vagas</span></span>
+      </a>
+    </h1>
+    <div class="top-info">
       <p class="top-sub" id="updated">Carregando vagas…</p>
-      <p class="top-account" id="account" hidden></p>
-      <p class="top-account" id="profile-line" hidden></p>
+      <p class="top-profile" id="profile-line" hidden></p>
     </div>
     <section class="pulse" aria-labelledby="pulse-title">
       <h2 id="pulse-title">Chegaram nos últimos 14 dias</h2>
       <div class="pulse-bars" id="pulse" role="group" aria-label="Filtrar por dia de chegada"></div>
     </section>
+    <div class="acct" id="acct">
+      <button type="button" class="acct-btn" id="acct-btn" aria-haspopup="true" aria-expanded="false" aria-controls="acct-menu">
+        <span class="avatar" id="acct-avatar" aria-hidden="true"></span>
+        <span class="acct-name" id="acct-name">Menu</span>
+        <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="acct-menu" id="acct-menu" hidden>
+        <div class="acct-who" id="acct-who" hidden><b id="acct-who-name"></b><span id="acct-who-email"></span></div>
+        <button type="button" class="acct-item" id="acct-perfil" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Meu perfil</span></button>
+        <button type="button" class="acct-item" id="acct-acessos" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg><span>Acessos</span></button>
+        <div class="acct-theme">
+          <span>Tema</span>
+          <div class="theme" role="group" aria-label="Tema">
+            <button type="button" data-theme-set="" aria-pressed="true" title="Segue o tema do seu aparelho">Automático</button>
+            <button type="button" data-theme-set="light" aria-pressed="false">Claro</button>
+            <button type="button" data-theme-set="dark" aria-pressed="false">Escuro</button>
+          </div>
+        </div>
+        <button type="button" class="acct-item" id="acct-sair" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/></svg><span>Sair</span></button>
+      </div>
+    </div>
   </header>
 
   <div id="banner" class="banner" hidden></div>
@@ -112,11 +133,6 @@
         <button role="tab" id="tab-all" data-tab="all" aria-selected="true">Todas <span class="count" id="count-all">0</span></button>
         <button role="tab" id="tab-saved" data-tab="saved" aria-selected="false">Salvas <span class="count" id="count-saved">0</span></button>
         <button role="tab" id="tab-applied" data-tab="applied" aria-selected="false">Candidaturas <span class="count" id="count-applied">0</span></button>
-        <div class="theme" role="group" aria-label="Tema">
-          <button type="button" data-theme-set="" aria-pressed="true" title="Segue o tema do seu aparelho">Automático</button>
-          <button type="button" data-theme-set="light" aria-pressed="false">Claro</button>
-          <button type="button" data-theme-set="dark" aria-pressed="false">Escuro</button>
-        </div>
       </div>
 
       <section class="filters" aria-label="Filtros de pesquisa">
@@ -213,6 +229,13 @@
       <footer class="foot" id="foot"></footer>
     </main>
   </div>
+
+  <nav class="bottom-nav" aria-label="Navegação">
+    <button type="button" data-go="all" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Vagas</span></button>
+    <button type="button" data-go="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg><span>Salvas</span><b class="bn-count" data-for="saved" hidden></b></button>
+    <button type="button" data-go="applied"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="7" rx="1"/></svg><span>Candidaturas</span><b class="bn-count" data-for="applied" hidden></b></button>
+    <button type="button" data-go="perfil"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Perfil</span><b class="bn-count alert" data-for="acessos" hidden></b></button>
+  </nav>
 
   <script src="firebase-config.js"></script>
   <script src="store.js"></script>

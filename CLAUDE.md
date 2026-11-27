@@ -65,6 +65,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 - A Gupy busca a frase exata do termo ("estagio desenvolvimento" não acha nada; "estágio" acha tudo). Antes de pôr um termo novo em `config.toml`, teste com `check --source gupy`. Estados da coleta presencial ficam em `sources.gupy.states`.
 - Fontes de vagas usam endpoints públicos sem documentação oficial (principalmente a Gupy, `portal.gupy.io/api/job-search/jobs`). Se uma fonte quebrar, rode `check --source nome` e leia o erro antes de mudar qualquer coisa.
 - Textos do painel e do e-mail em português, frases curtas, sem jargão.
+- Visual: cores em variáveis no topo de `docs/style.css`. `--neon` é o verde de preenchimento (botões, logo), `--accent` o verde de texto e borda (mais escuro no tema claro, para dar leitura), `--glow-c` a cor do brilho. Logo é o pin com R desenhado direto no HTML (classe `pin`), para seguir o tema. Tema fica no menu da conta. No celular (até 860px) as abas viram a barra de navegação de baixo (`bottom-nav`).
 - O filtro do perfil existe em Python (`evaluate_profile` em `filters.py`) e em JS (`evaluate` em `docs/perfil.js`). Mudou um, mude o outro e rode `python tests/make_paridade.py`; o teste de paridade compara os dois.
 
 ## Quadro de candidaturas

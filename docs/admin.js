@@ -24,9 +24,8 @@
     return el;
   }
 
-  /* o mesmo botão sempre: o login.js redesenha a linha da conta e reaproveita este */
-  const count = h("span", { class: "count", hidden: true });
-  const link = h("button", { class: "link-btn", type: "button", onclick: () => open() }, "Acessos", count);
+  /* número de pedidos esperando: vai dentro do item "Acessos" do menu da conta */
+  const count = h("span", { class: "count alert", hidden: true });
 
   const pending = () => list.filter((r) => r.status === "pendente");
 
@@ -34,7 +33,12 @@
     const n = pending().length;
     count.textContent = n;
     count.hidden = !n;
-    link.setAttribute("aria-label", n ? `Acessos: ${n} ${n === 1 ? "pedido esperando" : "pedidos esperando"}` : "Acessos");
+    count.setAttribute("aria-label", n ? `${n} ${n === 1 ? "pedido esperando" : "pedidos esperando"}` : "");
+    // pontinho de aviso no botão da conta e no "Perfil" da barra do celular
+    const btn = document.getElementById("acct-btn");
+    if (btn) btn.classList.toggle("has-alert", n > 0);
+    const nav = document.querySelector('.bn-count[data-for="acessos"]');
+    if (nav) { nav.textContent = n; nav.hidden = !n; }
   }
 
   Sync.onStatus((s) => {
@@ -101,5 +105,5 @@
     if (!dialog.open) dialog.showModal();
   }
 
-  window.Admin = { link: () => link, open, _set: (rows) => { list = rows; paintCount(); } };
+  window.Admin = { badge: () => count, open, _set: (rows) => { list = rows; paintCount(); } };
 })();

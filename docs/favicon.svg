@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 6 92 92">
-  <path d="M50 94C50 94 20 62 20 40a30 30 0 1 1 60 0C80 62 50 94 50 94Z" fill="#f2a900"/>
-  <path d="M40 27V55M40 27H50a9 9 0 0 1 0 18H40M49 45L59 55" fill="none" stroke="#0f1b2d" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <style>.b{fill:#00c060}@media (prefers-color-scheme: dark){.b{fill:#00e676}}</style>
+  <path class="b" d="M50 94C50 94 20 62 20 40a30 30 0 1 1 60 0C80 62 50 94 50 94Z"/>
+  <path d="M40 27V55M40 27H50a9 9 0 0 1 0 18H40M49 45L59 55" fill="none" stroke="#03140b" stroke-width="8.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
