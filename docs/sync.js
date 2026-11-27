@@ -130,13 +130,15 @@
     }
   }
 
-  function watchAccess(u) {
+  async function watchAccess(u) {
+    // o admin entra direto, mesmo que exista um pedido antigo em nome dele
+    if (await isAdmin()) return grant(u, "admin");
+    if (user !== u) return;
     const ref = fb.fs.doc(db, "acesso", u.uid);
     let asked = false;
     unsubAccess = fb.fs.onSnapshot(ref, async (snap) => {
       if (user !== u) return;
       if (!snap.exists()) {
-        if (await isAdmin()) return grant(u, "admin");
         if (asked) return;
         asked = true;                                      // pede acesso uma vez; o snapshot volta com "pendente"
         try {
