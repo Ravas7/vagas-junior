@@ -242,6 +242,8 @@ html:not(.gated) .gate { display: none; }
 
 /* ---------- layout ---------- */
 [hidden] { display: none !important; }
+/* nada passa da largura da tela (no celular, algo mais largo deixa arrastar a página e afastar com os dedos) */
+html, body { overflow-x: clip; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .layout {
   max-width: 1180px;
@@ -383,6 +385,9 @@ button.kpi:hover { border-color: var(--tone); }
 .tag.money { background: transparent; border: 1px solid var(--accent); color: var(--accent); font-weight: 500; }
 .tag.abroad { background: var(--ink); color: var(--paper); opacity: .8; }
 .tag.tech { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+/* etiqueta longa quebra a linha em vez de alargar a página no celular */
+.tag { max-width: 100%; }
+.tag.tech { white-space: normal; overflow-wrap: anywhere; }
 .tag.big { background: var(--ink); color: var(--paper); }
 .tag.area { background: var(--violet-soft); color: var(--violet); }
 .tag.news { background: transparent; border: 1px dashed var(--muted); color: var(--ink); }
