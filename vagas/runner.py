@@ -9,7 +9,7 @@ import tomllib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import emailer, filters, storage
+from . import emailer, filters, firebase, storage
 from .http import SourceError
 from .models import Job
 from .sources import REGISTRY
@@ -183,6 +183,41 @@ def write_profile(cfg: dict, path: str = PROFILE_PATH) -> int:
     return 0
 
 
+def matches_for(job: Job, perfil: dict | None, fcfg: dict) -> bool:
+    """A vaga (já salva no jobs.json) combina com o perfil? Sem perfil, vale o do config.toml."""
+    if perfil is None:
+        return job.padrao
+    if job.tipo == "noticia":
+        return filters.evaluate_news_profile(job, perfil).accepted
+    return filters.evaluate_profile(job, filters.base_from_job(job), perfil).accepted
+
+
+def avisos(cfg: dict) -> int:
+    """Diagnóstico dos avisos por pessoa: entra no Firebase como robô e mostra quem
+    receberia e quantas vagas ativas combinam com cada perfil. Não envia nada."""
+    fcfg = cfg.get("filter", {})
+    try:
+        client = firebase.Client.login()
+        people = firebase.recipients(client)
+    except firebase.FirebaseSkipped as exc:
+        log(f"Avisos por pessoa desligados: {exc}.")
+        return 1
+    except SourceError as exc:
+        log(f"ERRO no Firebase: {exc}")
+        return 1
+    jobs = [j for j in storage.load(cfg.get("storage", {}).get("path", "docs/data/jobs.json")).values() if j.active]
+    log(f"O robô entrou no Firebase. {len(people)} {'pessoa liberada' if len(people) == 1 else 'pessoas liberadas'}:")
+    for r in people:
+        hits = [j for j in jobs if matches_for(j, r.perfil, fcfg)]
+        vagas = sum(1 for j in hits if j.tipo == "vaga")
+        perfil = (f"perfil: {', '.join(r.perfil.get('niveis', []))} | {r.perfil.get('estado') or '-'}"
+                  if r.perfil else "sem perfil (vale o do config.toml)")
+        noticias = len(hits) - vagas
+        log(f"  {r.nome or '(sem nome)'} <{r.email}> | {perfil} | combinam {vagas} {'vaga' if vagas == 1 else 'vagas'}"
+            f" e {noticias} {'notícia' if noticias == 1 else 'notícias'} ativas")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
     parser = argparse.ArgumentParser(prog="vagas", description="Ragas: central de vagas")
@@ -193,12 +228,15 @@ def main(argv: list[str] | None = None) -> int:
     p_check = sub.add_parser("check", help="testa as fontes e o filtro sem salvar nada")
     p_check.add_argument("--source", help="testar só uma fonte (gupy, adzuna...)")
     sub.add_parser("perfil", help=f"grava {PROFILE_PATH} (perfil padrão e opções do formulário)")
+    sub.add_parser("avisos", help="testa a leitura do Firebase: quem recebe aviso e quantas vagas combinam (não envia)")
     args = parser.parse_args(argv)
 
     load_dotenv()
     cfg = load_config(args.config)
     if args.cmd == "run":
         return run(cfg, send_email=not args.no_email)
+    if args.cmd == "avisos":
+        return avisos(cfg)
     if args.cmd == "perfil":
         return write_profile(cfg)
     return check(cfg, args.source)

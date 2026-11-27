@@ -32,6 +32,8 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           ADZUNA_APP_ID: ${{ secrets.ADZUNA_APP_ID }}
           ADZUNA_APP_KEY: ${{ secrets.ADZUNA_APP_KEY }}
+          FIREBASE_ROBO_EMAIL: ${{ secrets.FIREBASE_ROBO_EMAIL }}
+          FIREBASE_ROBO_SENHA: ${{ secrets.FIREBASE_ROBO_SENHA }}
 
       - name: Salvar vagas no repositório
         run: |

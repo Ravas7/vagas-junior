@@ -152,7 +152,7 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
 1. Em [console.firebase.google.com](https://console.firebase.google.com), crie um projeto (pode desligar o Google Analytics).
 2. **Authentication > Sign-in method**: ative **Google** e **E-mail/senha**. Em **Configurações > Domínios autorizados**, adicione `SEU-USUARIO.github.io`. Em **Templates**, dá para trocar o idioma do e-mail de "nova senha" para português.
 3. **Firestore Database > Criar banco de dados** (modo produção, região `southamerica-east1`).
-4. Na aba **Regras** do Firestore, cole e publique (troque `SEU_EMAIL` pelo seu e-mail, o do admin):
+4. Na aba **Regras** do Firestore, cole e publique (troque `SEU_EMAIL` pelo seu e-mail, o do admin, e `ROBO_EMAIL` pelo e-mail da conta do robô; veja "Avisos por pessoa" abaixo):
    ```
    rules_version = '2';
    service cloud.firestore {
@@ -161,6 +161,9 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
        function admin() {
          return logado() && request.auth.token.email == 'SEU_EMAIL'
                 && request.auth.token.email_verified == true;
+       }
+       function robo() {          // conta do robô do GitHub: só lê, para mandar os avisos
+         return logado() && request.auth.token.email == 'ROBO_EMAIL';
        }
        function aprovado() {
          return logado() && exists(/databases/$(database)/documents/acesso/$(request.auth.uid))
@@ -171,11 +174,14 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
        match /users/{uid}/{document=**} {
          allow read, write: if logado() && request.auth.uid == uid && (admin() || aprovado());
        }
+       match /users/{uid}/perfil/{doc} {
+         allow read: if robo();
+       }
 
        // pedidos de acesso: a pessoa cria o próprio pedido (pendente); só o admin decide
        match /acesso/{uid} {
-         allow read: if admin() || (logado() && request.auth.uid == uid);
-         allow create: if logado() && request.auth.uid == uid
+         allow read: if admin() || robo() || (logado() && request.auth.uid == uid);
+         allow create: if admin() || logado() && request.auth.uid == uid
                        && request.resource.data.keys().hasOnly(['email', 'nome', 'status', 'pedidoEm'])
                        && request.resource.data.status == 'pendente'
                        && request.resource.data.email == request.auth.token.email
@@ -186,6 +192,12 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
    }
    ```
    **Como funciona o acesso:** qualquer pessoa cria conta na tela de entrada. Na primeira vez, o painel cria sozinho um pedido em `acesso/{uid}` e mostra "Pedido enviado". Você (admin) vê o link **Acessos** no topo, com o número de pedidos esperando, e clica em **Liberar** ou **Recusar**. Quando libera, a tela da pessoa abre sozinha. Dá para **Bloquear** depois. Quem é admin fica só nas regras, não no código do site.
+
+   **Avisos por pessoa (conta do robô):** o robô do GitHub lê a lista de liberados e o perfil de cada um para mandar os avisos de vagas novas.
+   1. **Authentication → Usuários → Adicionar usuário**: crie um e-mail só para o robô (pode ser inventado, ex.: `robo@ragas.app`) e uma senha forte.
+   2. Nas regras acima, troque `ROBO_EMAIL` por esse e-mail e publique.
+   3. No GitHub, **Settings → Secrets and variables → Actions**: crie `FIREBASE_ROBO_EMAIL` e `FIREBASE_ROBO_SENHA`. Para testar no seu computador, ponha as mesmas linhas no `.env`.
+   4. Teste com `python -m vagas avisos`: mostra quem está liberado e quantas vagas combinam com cada perfil. Não envia nada.
 5. **Configurações do projeto > Seus apps > Web (`</>`)**: registre um app e copie o objeto `firebaseConfig`. Cole em `docs/firebase-config.js`, no lugar de `null`. Esses valores não são segredos; quem protege os dados são as regras acima.
 6. Faça o commit. Com o Firebase configurado, **o painel pede login antes de abrir**: a tela de entrada aceita Google ou e-mail e senha, tem **Criar conta** e **Esqueci minha senha**. Sem `firebase-config.js` (valor `null`), o painel abre direto, sem login.
 

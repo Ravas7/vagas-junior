@@ -120,6 +120,22 @@
     }
   }
 
+  /* O admin também aparece como "aprovado" em acesso/: assim o robô manda aviso para ele.
+     Ser admin continua dependendo só das regras (e-mail), não deste documento. */
+  async function listAdmin(u) {
+    try {
+      const ref = fb.fs.doc(db, "acesso", u.uid);
+      const snap = await fb.fs.getDoc(ref);
+      if (snap.exists() && snap.data().status === "aprovado") return;
+      await fb.fs.setDoc(ref, {
+        email: u.email || "", nome: (u.displayName || "").slice(0, 60), status: "aprovado",
+        ...(snap.exists() ? {} : { pedidoEm: fb.fs.serverTimestamp() }), decididoEm: fb.fs.serverTimestamp(),
+      }, { merge: true });
+    } catch (err) {
+      console.warn("admin na lista de acesso:", err);          // regra antiga: sem problema, só não recebe aviso
+    }
+  }
+
   /* Regras antigas (sem a coleção acesso): quem já lia os próprios dados continua lendo. */
   async function legacyAccess(u) {
     try {
@@ -132,7 +148,7 @@
 
   async function watchAccess(u) {
     // o admin entra direto, mesmo que exista um pedido antigo em nome dele
-    if (await isAdmin()) return grant(u, "admin");
+    if (await isAdmin()) { listAdmin(u); return grant(u, "admin"); }
     if (user !== u) return;
     const ref = fb.fs.doc(db, "acesso", u.uid);
     let asked = false;
