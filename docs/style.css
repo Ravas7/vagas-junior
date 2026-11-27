@@ -828,7 +828,7 @@ html.gated body {
   .layout { padding: 10px 14px 24px; }
   .filters-bar { padding: 8px; gap: 8px; }
   .filters-toggle { padding: 0 12px; }
-  .kpis { scroll-snap-type: x mandatory; margin: 0 -14px 14px; padding: 0 14px 4px; }
+  .kpis { scroll-snap-type: x mandatory; scroll-padding-inline: 14px; margin: 0 -14px 14px; padding: 0 14px 4px; }   /* o cartão encaixa alinhado com as vagas, não na borda da tela */
   .kpi { scroll-snap-align: start; min-width: 152px; }
 
   .job { padding: 14px 14px 14px 18px; }
