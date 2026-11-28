@@ -138,6 +138,7 @@
     <main class="results">
       <div class="tabs" role="tablist" aria-label="Lista">
         <button role="tab" id="tab-all" data-tab="all" aria-selected="true">Todas <span class="count" id="count-all">0</span></button>
+        <button role="tab" id="tab-freelas" data-tab="freelas" aria-selected="false">Freelas <span class="count" id="count-freelas">0</span></button>
         <button role="tab" id="tab-saved" data-tab="saved" aria-selected="false">Salvas <span class="count" id="count-saved">0</span></button>
         <button role="tab" id="tab-applied" data-tab="applied" aria-selected="false">Candidaturas <span class="count" id="count-applied">0</span></button>
       </div>
@@ -159,7 +160,7 @@
 
         <div class="filters-body" id="filters-body" hidden>
           <div class="filters-grid">
-            <label class="field">
+            <label class="field only-vagas">
               <span>Tipo</span>
               <select id="tipo">
                 <option value="">Vagas e notícias</option>
@@ -168,7 +169,7 @@
               </select>
             </label>
 
-            <label class="field">
+            <label class="field only-vagas">
               <span>Área</span>
               <select id="area">
                 <option value="">Todas as áreas</option>
@@ -179,7 +180,7 @@
               </select>
             </label>
 
-            <label class="field">
+            <label class="field only-vagas">
               <span>Local</span>
               <select id="local">
                 <option value="">Todos os lugares</option>
@@ -189,14 +190,52 @@
               </select>
             </label>
 
-            <label class="field">
+            <label class="field only-vagas">
               <span>Estado</span>
               <select id="uf"><option value="">Todos</option></select>
             </label>
 
-            <label class="field">
+            <label class="field only-vagas">
               <span>Fonte</span>
               <select id="source"><option value="">Todas</option></select>
+            </label>
+
+            <label class="field only-freelas">
+              <span>Nível pedido</span>
+              <select id="fr-nivel">
+                <option value="">Todos</option>
+                <option value="iniciante">Só para iniciante</option>
+                <option value="intermediario">Até intermediário</option>
+              </select>
+            </label>
+
+            <label class="field only-freelas">
+              <span>Orçamento mínimo</span>
+              <select id="fr-orcamento">
+                <option value="0">Qualquer um</option>
+                <option value="50">A partir de USD 50</option>
+                <option value="100">A partir de USD 100</option>
+                <option value="250">A partir de USD 250</option>
+                <option value="500">A partir de USD 500</option>
+              </select>
+            </label>
+
+            <label class="field only-freelas">
+              <span>Concorrência</span>
+              <select id="fr-propostas">
+                <option value="">Qualquer número de propostas</option>
+                <option value="10">Até 10 propostas</option>
+                <option value="30">Até 30 propostas</option>
+              </select>
+            </label>
+
+            <label class="field only-freelas">
+              <span>Site</span>
+              <select id="fr-source">
+                <option value="">Todos</option>
+                <option value="workana">Workana</option>
+                <option value="freelas99">99Freelas</option>
+              </select>
             </label>
 
             <label class="field">
@@ -207,7 +246,7 @@
               </select>
             </label>
 
-            <fieldset class="field">
+            <fieldset class="field only-vagas">
               <legend>Modalidade</legend>
               <label class="check"><input type="checkbox" name="wp" value="remoto"> Remoto</label>
               <label class="check"><input type="checkbox" name="wp" value="hibrido"> Híbrido</label>
@@ -217,10 +256,11 @@
 
             <fieldset class="field wide">
               <legend>Exibir</legend>
-              <label class="check"><input type="checkbox" id="only-big"> Só grandes empresas e multinacionais</label>
-              <label class="check"><input type="checkbox" id="only-new"> Só as dos últimos 7 dias</label>
-              <label class="check"><input type="checkbox" id="show-closed"> Vagas encerradas</label>
-              <label class="check"><input type="checkbox" id="show-hidden"> Vagas ocultadas</label>
+              <label class="check only-vagas"><input type="checkbox" id="only-big"> Só grandes empresas e multinacionais</label>
+              <label class="check"><input type="checkbox" id="only-new"> Só os dos últimos 7 dias</label>
+              <label class="check only-vagas"><input type="checkbox" id="show-closed"> Vagas encerradas</label>
+              <label class="check"><input type="checkbox" id="show-hidden"> Ocultados</label>
+              <label class="check only-freelas"><input type="checkbox" id="fr-techs"> Só os que citam minhas tecnologias</label>
             </fieldset>
           </div>
           <div class="filters-actions">
@@ -239,6 +279,7 @@
 
   <nav class="bottom-nav" aria-label="Navegação">
     <button type="button" data-go="all" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg><span>Vagas</span></button>
+    <button type="button" data-go="freelas"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></svg><span>Freelas</span></button>
     <button type="button" data-go="saved"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h12v17l-6-4-6 4z"/></svg><span>Salvas</span><b class="bn-count" data-for="saved" hidden></b></button>
     <button type="button" data-go="applied"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="7" rx="1"/></svg><span>Candidaturas</span><b class="bn-count" data-for="applied" hidden></b></button>
     <button type="button" data-go="perfil"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>Perfil</span><b class="bn-count alert" data-for="acessos" hidden></b></button>

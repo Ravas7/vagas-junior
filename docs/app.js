@@ -6,7 +6,9 @@
   const SRC = {
     gupy: "Gupy", adzuna: "Adzuna", greenhouse: "Greenhouse", lever: "Lever", ashby: "Ashby",
     smartrecruiters: "SmartRecruiters", workday: "Workday", noticias: "Notícias",
+    workana: "Workana", freelas99: "99Freelas",
   };
+  const NIVEL_FREELA = { iniciante: "Para iniciante", intermediario: "Intermediário", especialista: "Pede especialista" };
   const NIVEL = { estagio: "Estágio", pleno: "Pleno", senior: "Sênior" };   // júnior é o normal: sem etiqueta
   const EN = { "": "Inglês não informado", basico: "Inglês básico", intermediario: "Inglês intermediário", avancado: "Inglês avançado" };
   const STORE = "vagas-junior:status:v1";
@@ -18,7 +20,7 @@
   const $$ = (sel) => [...document.querySelectorAll(sel)];
 
   const state = {
-    jobs: [], meta: {}, sample: false, now: new Date(),
+    jobs: [], freelas: [], meta: {}, sample: false, now: new Date(),
     status: readStatus(),            // id -> "saved" | "hidden" (candidaturas ficam em store.js)
     tab: "all", day: null,
   };
@@ -62,7 +64,8 @@
     if (!iso) return "";
     const n = daysAgo(iso);
     const base = n === 0 ? "hoje" : n === 1 ? "ontem" : `há ${n} dias`;
-    return job.posted_at ? `Publicada ${base}` : `Vista ${base}`;
+    const o = job.tipo === "freela" ? "o" : "a";                  // "Publicado" (o freela) / "Publicada" (a vaga)
+    return job.posted_at ? `Publicad${o} ${base}` : `Vist${o} ${base}`;
   }
   const isNew = (job) => job.first_seen && daysAgo(job.first_seen) <= 1;
   const pipCount = (s) => (s >= 80 ? 5 : s >= 70 ? 4 : s >= 60 ? 3 : s >= 50 ? 2 : 1);
@@ -81,7 +84,8 @@
     }
     // O arquivo traz tudo que passou na base (estágio, pleno, sênior, hardware...).
     // applyProfile escolhe o que aparece: pelo perfil de quem entrou ou pelo perfil padrão.
-    state.allJobs = data.jobs.filter((j) => j.tipo !== "freela");   // freelas ganham aba própria (ideia 8, etapa 2)
+    state.allJobs = data.jobs.filter((j) => j.tipo !== "freela");
+    state.allFreelas = data.jobs.filter((j) => j.tipo === "freela");   // aba própria "Freelas"
     state.meta = data.meta || {};
     state.now = state.sample ? new Date("2026-11-23T15:00:00-03:00") : new Date();
     applyProfile();
@@ -99,6 +103,9 @@
     } else {
       state.jobs = state.allJobs.filter((j) => j.padrao !== false);   // sem perfil: o do config.toml
     }
+    // freelas: todos aparecem; o perfil só marca as tecnologias em comum
+    const mine = new Set((p && p.tecnologias) || []);
+    state.freelas = (state.allFreelas || []).map((j) => ({ ...j, comuns: (j.techs || []).filter((t) => mine.has(t)) }));
     const line = $("#profile-line");
     if (p && o) {
       line.replaceChildren("Seu perfil: " + P.summary(p, o) + " · ",
@@ -130,10 +137,35 @@
       onlyBig: $("#only-big").checked,
       onlyNew: $("#only-new").checked,
       closed: $("#show-closed").checked, hidden: $("#show-hidden").checked,
+      frNivel: $("#fr-nivel").value, frMin: Number($("#fr-orcamento").value) || 0,
+      frBids: Number($("#fr-propostas").value) || 0, frSource: $("#fr-source").value, frTechs: $("#fr-techs").checked,
     };
   }
 
+  /* o que a lista mostra em cada aba: vagas, freelas ou os dois (Salvas) */
+  const pool = () => (state.tab === "freelas" ? state.freelas : state.tab === "saved" ? state.jobs.concat(state.freelas) : state.jobs);
+
+  function matchesFreela(job, f, ignoreTab) {
+    const st = state.status[job.id] || "";
+    if (!f.hidden && st === "hidden") return false;
+    if (!ignoreTab && state.tab === "saved" && st !== "saved") return false;
+    if (f.q.length) {
+      const hay = norm([job.title, job.location, job.snippet, (job.techs || []).join(" ")].join(" "));
+      if (!f.q.every((w) => hay.includes(w))) return false;
+    }
+    if (state.tab === "saved") return true;                // nas Salvas, só a busca vale para os freelas
+    if (f.onlyNew && daysAgo(job.first_seen) > 7) return false;
+    if (f.frNivel === "iniciante" && job.nivel_freela !== "iniciante") return false;
+    if (f.frNivel === "intermediario" && job.nivel_freela === "especialista") return false;
+    if (f.frMin && (job.por_hora || Math.max(job.orcamento_min || 0, job.orcamento_max || 0) < f.frMin)) return false;
+    if (f.frBids && !(job.propostas >= 0 && job.propostas <= f.frBids)) return false;
+    if (f.frSource && job.source !== f.frSource) return false;
+    if (f.frTechs && !(job.comuns || []).length) return false;
+    return true;
+  }
+
   function matches(job, f, ignoreTab = false) {
+    if (job.tipo === "freela") return matchesFreela(job, f, ignoreTab);
     const st = state.status[job.id] || "";
     if (!f.closed && !job.active) return false;
     if (f.tipo && (job.tipo || "vaga") !== f.tipo) return false;
@@ -247,16 +279,61 @@
     );
   }
 
+  /* cartão do freela: orçamento, propostas e nível no lugar de empresa, local e salário */
+  function freelaRow(job) {
+    const st = state.status[job.id] || "";
+    const set = (value) => () => {
+      state.status[job.id] = state.status[job.id] === value ? "" : value;
+      if (!state.status[job.id]) delete state.status[job.id];
+      writeStatus(); quietly(render);
+    };
+    const n = pipCount(job.score);
+    const why = (job.reasons || []).slice(1).join(", ");
+    const few = job.propostas >= 0 && job.propostas <= 10;
+    const others = (job.techs || []).filter((t) => !(job.comuns || []).includes(t)).slice(0, 3);
+    return h("article", {
+      class: ["job is-freela", isNew(job) && "is-new", st === "saved" && "is-saved"].filter(Boolean).join(" "),
+    },
+      h("div", {},
+        h("h3", {}, h("a", { href: job.url, target: "_blank", rel: "noopener noreferrer" }, job.title)),
+        h("p", { class: "where" }, h("b", {}, SRC[job.source] || job.source), job.location || ""),
+        h("div", { class: "tags" },
+          isNew(job) && h("span", { class: "tag new" }, "Novo"),
+          job.orcamento && h("span", { class: "tag money" }, job.orcamento),
+          NIVEL_FREELA[job.nivel_freela] && h("span", { class: "tag " + (job.nivel_freela === "iniciante" ? "tech" : "plain") },
+            NIVEL_FREELA[job.nivel_freela]),
+          job.propostas >= 0 && h("span", { class: "tag " + (few ? "tech" : "plain") },
+            job.propostas === 1 ? "1 proposta" : `${job.propostas} propostas`),
+          job.pagamento_verificado && h("span", { class: "tag" }, "Pagamento verificado"),
+          (job.comuns || []).length > 0 && h("span", { class: "tag tech" }, "Sua tecnologia: " + job.comuns.join(", ")),
+          others.map((t) => h("span", { class: "tag plain" }, t)),
+          h("span", { class: "pips", role: "img", "aria-label": `Relevância ${n} de 5`, title: `Relevância ${n} de 5` },
+            [1, 2, 3, 4, 5].map((i) => h("i", { class: i <= n ? "on" : "" })))),
+      ),
+      h("div", { class: "side" },
+        h("span", { class: "age" }, ageLabel(job)),
+        h("div", { class: "actions" },
+          h("button", { class: "btn", type: "button", "aria-pressed": String(st === "saved"), onclick: set("saved") }, st === "saved" ? "Salvo" : "Salvar"),
+          h("a", { class: "btn primary", href: job.url, target: "_blank", rel: "noopener noreferrer" }, "Ver no site"),
+          h("button", { class: "btn quiet", type: "button", onclick: set("hidden") }, st === "hidden" ? "Mostrar de novo" : "Ocultar"))),
+      (job.snippet || why) && h("details", { class: "more" },
+        h("summary", {}, "Ver resumo"),
+        job.snippet && h("p", {}, job.snippet),
+        why && h("p", { class: "why" }, "Por que aparece: " + why)),
+    );
+  }
+
   function render() {
     const f = filters();
-    const list = state.jobs.filter((j) => matches(j, f));
+    const list = pool().filter((j) => matches(j, f));
     list.sort(f.sort === "recent"
       ? (a, b) => (b.posted_at || b.first_seen).localeCompare(a.posted_at || a.first_seen) || b.score - a.score
       : (a, b) => b.score - a.score || b.first_seen.localeCompare(a.first_seen));
 
     const base = state.jobs.filter((j) => matches(j, f, true));
     $("#count-all").textContent = base.length;
-    $("#count-saved").textContent = base.filter((j) => state.status[j.id] === "saved").length;
+    $("#count-freelas").textContent = state.freelas.filter((j) => (state.status[j.id] || "") !== "hidden").length;
+    $("#count-saved").textContent = state.jobs.concat(state.freelas).filter((j) => state.status[j.id] === "saved").length;
     navCount("saved", $("#count-saved").textContent);
     countApplied();
 
@@ -266,7 +343,12 @@
     const box = $("#list");
     box.replaceChildren();
 
-    if (!list.length) {
+    if (!list.length && state.tab === "freelas") {
+      box.append(h("div", { class: "empty" },
+        h("h3", {}, state.freelas.length ? "Nenhum freela com esses filtros" : "Ainda não há freelas aqui"),
+        h("p", {}, state.freelas.length ? "Remova algum filtro para ver mais projetos."
+          : "Os projetos da Workana e do 99Freelas aparecem aqui depois da próxima coleta do robô.")));
+    } else if (!list.length) {
       const nothingYet = !state.jobs.length;
       box.append(h("div", { class: "empty" },
         h("h3", {}, nothingYet ? "Ainda não há vagas aqui" : "Nenhuma vaga com esses filtros"),
@@ -275,7 +357,7 @@
           : state.tab === "all" ? "Remova algum filtro ou escolha outro dia na faixa de cima." : "Use Salvar nas vagas para listá-las aqui."),
         nothingYet && h("code", {}, "python -m vagas run")));
     } else {
-      const rows = list.map(jobRow);
+      const rows = list.map((j) => (j.tipo === "freela" ? freelaRow(j) : jobRow(j)));
       // entrada em cascata nas primeiras vagas (não ao digitar, salvar ou ocultar)
       if (!state.quiet) rows.slice(0, 12).forEach((el, i) => { el.classList.add("rise"); el.style.setProperty("--i", i); });
       box.append(...rows);
@@ -289,6 +371,17 @@
     const q = $("#q").value.trim();
     if (q) out.push({ label: `Busca: “${q}”`, search: true, clear: () => { $("#q").value = ""; } });
     if (state.tab === "applied") return out;               // no quadro só a busca vale
+    if (state.tab === "freelas") {
+      for (const sel of ["#fr-nivel", "#fr-propostas", "#fr-source"]) {
+        if ($(sel).value) out.push({ label: optText(sel), clear: () => { $(sel).value = ""; } });
+      }
+      if ($("#fr-orcamento").value !== "0") out.push({ label: optText("#fr-orcamento"), clear: () => { $("#fr-orcamento").value = "0"; } });
+      const fchecks = { "#only-new": "Últimos 7 dias", "#fr-techs": "Com minhas tecnologias", "#show-hidden": "Com ocultados" };
+      for (const [sel, label] of Object.entries(fchecks)) {
+        if ($(sel).checked) out.push({ label, clear: () => { $(sel).checked = false; } });
+      }
+      return out;
+    }
     for (const sel of ["#tipo", "#area", "#local", "#uf", "#source"]) {
       if ($(sel).value) out.push({ label: (sel === "#uf" ? "Estado: " : sel === "#source" ? "Fonte: " : "") + optText(sel),
         clear: () => { $(sel).value = ""; } });
@@ -320,6 +413,7 @@
 
   /* cartões de resumo: o primeiro só informa, os outros ligam e desligam um filtro rápido */
   function renderKpis(f, list) {
+    if (state.tab === "freelas") return renderFreelaKpis(f, list);
     const count = (extra) => state.jobs.filter((j) => matches(j, { ...f, ...extra })).length;
     const remote = $('input[name="wp"][value="remoto"]');
     const onlyRemote = remote.checked && f.wp.length === 1;
@@ -344,6 +438,29 @@
     }));
   }
 
+  function renderFreelaKpis(f, list) {
+    const count = (extra) => state.freelas.filter((j) => matches(j, { ...f, ...extra })).length;
+    const newCount = list.filter((j) => isNew(j)).length;
+    const hasTechs = !!(state.perfil && state.perfil.tecnologias && state.perfil.tecnologias.length);
+    const flip = (sel, value) => () => { $(sel).value = $(sel).value === value ? "" : value; };
+    const cards = [
+      { label: "Na lista", value: list.length, sub: newCount ? `${newCount} de hoje ou ontem` : "com os filtros atuais", tone: "main" },
+      { label: "Para iniciante", value: count({ frNivel: "iniciante" }), sub: "aceitam quem está começando", tone: "green",
+        on: f.frNivel === "iniciante", toggle: flip("#fr-nivel", "iniciante") },
+      { label: "Pouca concorrência", value: count({ frBids: 10 }), sub: "até 10 propostas", tone: "teal",
+        on: f.frBids === 10, toggle: flip("#fr-propostas", "10") },
+      hasTechs && { label: "Suas tecnologias", value: count({ frTechs: true }), sub: "citam o que você usa", tone: "pink",
+        on: f.frTechs, toggle: () => { $("#fr-techs").checked = !$("#fr-techs").checked; } },
+    ].filter(Boolean);
+    $("#kpis").replaceChildren(...cards.map((c) => {
+      const body = [h("span", { class: "kpi-label" }, c.label), h("strong", {}, String(c.value)), h("small", {}, c.sub)];
+      return c.toggle
+        ? h("button", { class: `kpi tone-${c.tone}`, type: "button", "aria-pressed": String(!!c.on),
+            title: c.on ? "Clique para tirar este filtro" : "Clique para filtrar", onclick: () => { c.toggle(); refresh(); } }, ...body)
+        : h("div", { class: `kpi tone-${c.tone}`, "aria-live": "polite" }, ...body);
+    }));
+  }
+
   function refresh() {
     if (state.tab === "applied") { renderChips(); if (board) board.render(); }
     else render();
@@ -352,6 +469,7 @@
   function resetFilters() {
     $("#q").value = ""; $("#uf").value = ""; $("#source").value = ""; $("#sort").value = "score";
     $("#tipo").value = ""; $("#area").value = ""; $("#local").value = "";
+    $("#fr-nivel").value = ""; $("#fr-orcamento").value = "0"; $("#fr-propostas").value = ""; $("#fr-source").value = "";
     $$('.filters input[type="checkbox"]').forEach((c) => (c.checked = false));
     state.day = null; renderPulse(); refresh();
   }
@@ -365,8 +483,9 @@
       const d = new Date(m.updated_at);
       when = `Atualizado em ${dm(d)} às ${pad(d.getHours())}:${pad(d.getMinutes())}. `;
     }
-    $("#updated").textContent =
-      `${when}${vagas} vagas abertas${noticias ? ` e ${noticias} notícias de processos seletivos` : ""}.`;
+    const extra = [noticias && `${noticias} notícias de processos seletivos`, state.freelas.length && `${state.freelas.length} freelas`]
+      .filter(Boolean);
+    $("#updated").textContent = `${when}${vagas} vagas abertas${extra.length ? ", " + extra.join(" e ") : ""}.`;
 
     const banner = $("#banner");
     if (state.sample) {
@@ -385,7 +504,8 @@
 
   /* ---------- eventos ---------- */
   function bind() {
-    ["#q", "#uf", "#source", "#sort", "#tipo", "#area", "#local", "#only-big", "#only-new", "#show-closed", "#show-hidden"].forEach((s) =>
+    ["#q", "#uf", "#source", "#sort", "#tipo", "#area", "#local", "#only-big", "#only-new", "#show-closed", "#show-hidden",
+      "#fr-nivel", "#fr-orcamento", "#fr-propostas", "#fr-source", "#fr-techs"].forEach((s) =>
       $(s).addEventListener(s === "#q" ? "input" : "change", s === "#q" ? () => quietly(refresh) : refresh));
     $$('input[name="wp"]').forEach((i) => i.addEventListener("change", refresh));
     $$('.tabs [role="tab"]').forEach((b) => b.addEventListener("click", () => showTab(b.dataset.tab)));
@@ -448,7 +568,9 @@
     $("#list").hidden = isBoard;
     $("#kpis").hidden = isBoard;
     $(".filters").classList.toggle("board-mode", isBoard);
-    $("#q").placeholder = isBoard ? "Buscar candidatura: vaga ou empresa…" : "Buscar: python, react, empresa…";
+    $(".filters").classList.toggle("freela-mode", tab === "freelas");
+    $("#q").placeholder = isBoard ? "Buscar candidatura: vaga ou empresa…"
+      : tab === "freelas" ? "Buscar freela: python, site, app…" : "Buscar: python, react, empresa…";
     refresh();
   }
 
