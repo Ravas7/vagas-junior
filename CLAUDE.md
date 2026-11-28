@@ -91,7 +91,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 3. Fonte de vagas remotas do exterior (quadros globais).
 4. Sincronizar vagas salvas e ocultas.
 5. Confirmar por que duas vagas da Gupy aparecem com a empresa "ADMINISTRADOR DE REDES".
-6. Abrir para amigos testarem (uso real, não venda). Fazer em etapas e com plano aprovado antes:
+6. (concluída em 28/11/2026) Abrir para amigos testarem (uso real, não venda):
    - Perfil por pessoa no Firestore (cidade, remoto, tecnologias, salário mínimo).
    - Robô coleta mais amplo; cada pessoa filtra no painel pelo próprio perfil.
    - (feito) Acesso por pedido: quem cria conta fica pendente em `acesso/{uid}`; o admin libera em "Acessos". Regras no README, passo 9.
