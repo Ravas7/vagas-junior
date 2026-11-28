@@ -9,6 +9,11 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" sizes="48x48">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Ragas">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=Syne:wght@700&display=swap">
@@ -120,6 +125,7 @@
             <button type="button" data-theme-set="dark" aria-pressed="false">Escuro</button>
           </div>
         </div>
+        <button type="button" class="acct-item" id="acct-instalar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 19h14"/></svg><span>Instalar o app</span></button>
         <button type="button" class="acct-item" id="acct-sair" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/></svg><span>Sair</span></button>
       </div>
     </div>
@@ -245,5 +251,22 @@
   <script src="admin.js"></script>
   <script src="kanban.js"></script>
   <script src="app.js"></script>
+  <script>
+    // painel instalável: abre rápido e funciona sem internet com a última lista (sw.js)
+    if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js"));
+    // "Instalar o app" no menu da conta: só aparece quando o navegador oferece (Android/Chrome, Edge)
+    (() => {
+      let pedido = null;
+      const item = document.getElementById("acct-instalar");
+      addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); pedido = e; item.hidden = false; });
+      addEventListener("appinstalled", () => { pedido = null; item.hidden = true; });
+      item.addEventListener("click", async () => {
+        if (!pedido) return;
+        pedido.prompt();
+        await pedido.userChoice;
+        pedido = null; item.hidden = true;
+      });
+    })();
+  </script>
 </body>
 </html>
