@@ -132,3 +132,24 @@ def test_sem_firebase_volta_o_email_do_config(monkeypatch, tmp_path):
 def test_coleta_da_noite():
     assert avisos.is_evening(datetime(2026, 11, 27, 18), {})
     assert not avisos.is_evening(datetime(2026, 11, 27, 8), {})
+
+
+def test_registros_do_robo_nao_mostram_nome_nem_email(monkeypatch, tmp_path, capsys):
+    """Os registros do GitHub Actions são públicos: nada de nome ou e-mail de quem usa o Ragas."""
+    monkeypatch.setattr(REGISTRY["gupy"], "fetch", lambda cfg: [
+        Job(id="gupy:1", source="gupy", title="Estágio em Desenvolvimento de Software", company="B", url="https://x/2",
+            workplace="remoto")])
+    monkeypatch.setattr(runner, "load_people", lambda: [EU, AMIGA])
+    monkeypatch.setenv("EMAIL_USER", "eu@x.com")
+    monkeypatch.setenv("EMAIL_APP_PASSWORD", "segredo")
+
+    def falha(msg, *a):
+        raise OSError(f"recusado: {msg['To']}")
+    monkeypatch.setattr(emailer, "send", falha)
+    cfg = {"storage": {"path": str(tmp_path / "jobs.json")}, "email": {"enabled": True},
+           "filter": {"location_filter": True, "state": "BA", "max_age_days": 0}, "sources": {"gupy": {"enabled": True}}}
+    runner.run(cfg)
+    out = capsys.readouterr().out
+    assert "pessoa u2" in out
+    for private in ("Emily", "amiga@x.com", "Pedro", "eu@x.com"):
+        assert private not in out, private

@@ -16,6 +16,8 @@
   const store = C.createStore({ storage: (() => { try { return window.localStorage; } catch { return null; } })() });
   const DAY = 86400000;
 
+  /* só links http(s) viram link clicável (nunca "javascript:", mesmo que uma fonte mande) */
+  const safeUrl = (u) => (/^https?:\/\//i.test(String(u || "").trim()) ? String(u).trim() : null);
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel) => [...document.querySelectorAll(sel)];
 
@@ -249,7 +251,7 @@
         .filter(Boolean).join(" "),
     },
       h("div", {},
-        h("h3", {}, h("a", { href: job.url, target: "_blank", rel: "noopener noreferrer" }, job.title)),
+        h("h3", {}, h("a", { href: safeUrl(job.url), target: "_blank", rel: "noopener noreferrer" }, job.title)),
         h("p", { class: "where" }, company && h("b", {}, company),
           place.join(", ") || (isNews ? "" : "Local não informado")),
         h("div", { class: "tags" },
@@ -302,7 +304,7 @@
       class: ["job is-freela", isNew(job) && "is-new", st === "saved" && "is-saved"].filter(Boolean).join(" "),
     },
       h("div", {},
-        h("h3", {}, h("a", { href: job.url, target: "_blank", rel: "noopener noreferrer" }, job.title)),
+        h("h3", {}, h("a", { href: safeUrl(job.url), target: "_blank", rel: "noopener noreferrer" }, job.title)),
         h("p", { class: "where" }, h("b", {}, SRC[job.source] || job.source), job.location || ""),
         h("div", { class: "tags" },
           isNew(job) && h("span", { class: "tag new" }, "Novo"),
@@ -321,7 +323,7 @@
         h("span", { class: "age" }, ageLabel(job)),
         h("div", { class: "actions" },
           h("button", { class: "btn", type: "button", "aria-pressed": String(st === "saved"), onclick: set("saved") }, st === "saved" ? "Salvo" : "Salvar"),
-          h("a", { class: "btn primary", href: job.url, target: "_blank", rel: "noopener noreferrer" }, "Ver no site"),
+          h("a", { class: "btn primary", href: safeUrl(job.url), target: "_blank", rel: "noopener noreferrer" }, "Ver no site"),
           h("button", { class: "btn quiet", type: "button", onclick: set("hidden") }, st === "hidden" ? "Mostrar de novo" : "Ocultar"))),
       (job.snippet || why) && h("details", { class: "more" },
         h("summary", {}, "Ver resumo"),

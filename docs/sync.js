@@ -16,12 +16,12 @@
   const listeners = new Set();
   const Sync = {
     // mode: local | signed-out | connecting | synced | error
-    // access: "" | checking | admin | aprovado | pendente | recusado | erro
+    // access: "" | checking | verificar | admin | aprovado | pendente | recusado | erro
     status: { mode: "local", user: null, message: "", access: "" },
     configured: false,
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     hasAccess: () => ["admin", "aprovado"].includes(Sync.status.access),
-    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile, loadTelegram, deleteAccount, loginKind,
+    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile, loadTelegram, deleteAccount, loginKind, resendVerification, recheckVerification,
     watchRequests, decide,
   };
   window.Sync = Sync;
@@ -155,6 +155,9 @@
     unsubAccess = fb.fs.onSnapshot(ref, async (snap) => {
       if (user !== u) return;
       if (!snap.exists()) {
+        // conta de e-mail e senha só pede acesso depois de confirmar o e-mail (o Google já confirma):
+        // sem isso, alguém criaria conta com o e-mail de um amigo e o pedido chegaria com o nome dele
+        if (!u.emailVerified) { set({ access: "verificar", mode: "connecting" }); return; }
         if (asked) return;
         asked = true;                                      // pede acesso uma vez; o snapshot volta com "pendente"
         try {
@@ -241,10 +244,28 @@
     if (!auth) throw { code: "auth/network-request-failed" };
     pendingName = name || "";                             // o pedido de acesso nasce antes do nome ser gravado
     const cred = await fb.au.createUserWithEmailAndPassword(auth, email, password);
+    try { await fb.au.sendEmailVerification(cred.user); } catch (e) { console.warn("e-mail de confirmação:", e); }
     if (name) {
       await fb.au.updateProfile(cred.user, { displayName: name });
       set({ user: { uid: cred.user.uid, email: cred.user.email || email, name } });
     }
+  }
+
+  /* tela "Confirme seu e-mail" */
+  async function resendVerification() {
+    if (!auth || !auth.currentUser) throw { code: "auth/network-request-failed" };
+    await fb.au.sendEmailVerification(auth.currentUser);
+  }
+  async function recheckVerification() {
+    const u = auth && auth.currentUser;
+    if (!u) return false;
+    await u.reload();
+    if (!u.emailVerified) return false;
+    await u.getIdToken(true);                             // a regra do Firestore lê a confirmação do token novo
+    stopAll();
+    set({ access: "checking" });
+    watchAccess(u);
+    return true;
   }
 
   async function resetPassword(email) {

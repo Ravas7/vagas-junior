@@ -359,3 +359,10 @@ def test_vaga_publicada_ha_muito_tempo_e_descartada():
     sem_data = job("Desenvolvedor Júnior", workplace="remoto")
     assert filters.evaluate(sem_data, {"max_age_days": 45}).accepted
     assert filters.evaluate(velha, {"max_age_days": 0}).accepted
+
+
+def test_link_perigoso_nunca_entra():
+    for url in ("javascript:alert(1)", " JavaScript:alert(1)", "data:text/html,oi", "vbscript:x"):
+        j = job("Desenvolvedor Python Jr"); j.url = url
+        assert not filters.classify(j, CFG), url
+    assert filters.classify(job("Desenvolvedor Python Jr"), CFG)

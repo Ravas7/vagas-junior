@@ -125,7 +125,7 @@ def run(cfg: dict, send_email: bool = True) -> int:
         # o dono já recebe pelo próprio perfil: o e-mail do config.toml não sai (não duplica)
         for j in pending:
             j.notified = True
-        log(f"E-mail do config.toml não enviado: {to} já recebe pelo perfil.")
+        log(f"E-mail do config.toml não enviado: {avisos.mask_email(to)} já recebe pelo perfil.")
         pending = []
 
     if send_email and ecfg.get("enabled", True) and (pending or ecfg.get("send_when_empty", False)):
@@ -138,9 +138,9 @@ def run(cfg: dict, send_email: bool = True) -> int:
                              int(ecfg.get("smtp_port", 465)))
                 for j in pending:
                     j.notified = True
-                log(f"E-mail enviado para {to} ({len(pending)} itens novos)")
+                log(f"E-mail enviado para {avisos.mask_email(to)} ({len(pending)} itens novos)")
             except Exception as exc:  # noqa: BLE001 - qualquer falha de SMTP
-                log(f"ERRO ao enviar e-mail: {type(exc).__name__}: {exc}")
+                log(f"ERRO ao enviar e-mail: {type(exc).__name__}")   # a mensagem do SMTP pode trazer o e-mail
     elif not send_email and pending:
         out = Path("out")
         out.mkdir(exist_ok=True)
@@ -271,10 +271,10 @@ def send_avisos(plans: list, ecfg: dict, cfg: dict, send_email: bool, now: datet
             try:
                 for t in texts:
                     telegram.send(tok, pl.chat_id, t)
-                log(f"Aviso pelo Telegram para {p.nome or p.email} ({len(pl.jobs)} itens)")
+                log(f"Aviso pelo Telegram para {avisos.who(p)} ({len(pl.jobs) + len(pl.freelas)} itens)")
                 continue
             except SourceError as exc:
-                log(f"ERRO no Telegram de {p.nome or p.email} ({exc}); vai por e-mail.")
+                log(f"ERRO no Telegram de {avisos.who(p)} ({exc}); vai por e-mail.")
         msg = emailer.build_message(pl.jobs, ecfg, dashboard_url(cfg), user or "voce@exemplo.com", p.email, day,
                                     greeting=hello, footer=avisos.FOOTER, freelas=pl.freelas)
         label = f"{p.nome or p.email} ({len(pl.jobs) + len(pl.freelas)} itens)"
@@ -288,9 +288,9 @@ def send_avisos(plans: list, ecfg: dict, cfg: dict, send_email: bool, now: datet
             return
         try:
             emailer.send(msg, user, password, ecfg.get("smtp_host", "smtp.gmail.com"), int(ecfg.get("smtp_port", 465)))
-            log(f"Aviso enviado para {label}")
+            log(f"Aviso enviado para {avisos.who(p)} ({len(pl.jobs) + len(pl.freelas)} itens)")
         except Exception as exc:  # noqa: BLE001 - uma pessoa com problema não derruba as outras
-            log(f"ERRO ao enviar aviso para {p.email}: {type(exc).__name__}: {exc}")
+            log(f"ERRO ao enviar aviso para {avisos.who(p)}: {type(exc).__name__}")   # a mensagem do SMTP pode trazer o e-mail
 
 
 def matches_for(job: Job, perfil: dict | None, fcfg: dict) -> bool:

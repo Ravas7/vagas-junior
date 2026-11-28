@@ -32,6 +32,8 @@
   const reasonName = (id) => (REASONS.find((r) => r.id === id) || {}).name || "";
   const reasonsFor = (app) => REASONS.filter((r) => r.id !== "contratado" || app.stage === "proposta");
   const str = (v) => (v == null ? "" : String(v)).trim();
+  /** Só links http(s): "javascript:..." vindo de arquivo importado ou da nuvem viraria código ao clicar. */
+  const safeUrl = (v) => (/^https?:\/\//i.test(str(v)) ? str(v) : "");
 
   /** Garante o formato certo, venha de onde vier (navegador, nuvem ou arquivo importado). */
   function normalize(raw) {
@@ -43,7 +45,7 @@
       id: str(raw.id),
       title: str(raw.title) || "Candidatura sem título",
       company: str(raw.company),
-      url: str(raw.url),
+      url: safeUrl(raw.url),
       location: str(raw.location),
       workplace: str(raw.workplace),
       grande: !!raw.grande,

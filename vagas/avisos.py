@@ -118,6 +118,18 @@ def covers(people: list[Recipient] | None, email: str) -> bool:
     return False
 
 
+def who(p: Recipient) -> str:
+    """Como a pessoa aparece nos registros do GitHub Actions, que são PÚBLICOS: sem nome nem e-mail.
+    O começo do uid basta para achar a conta no console do Firebase."""
+    return f"pessoa {p.uid[:6]}"
+
+
+def mask_email(email: str) -> str:
+    """'pedro@gmail.com' -> 'pe***@gmail.com' (para registros públicos)."""
+    user, _, domain = (email or "").partition("@")
+    return f"{user[:2]}***@{domain}" if domain else "***"
+
+
 def greeting(p: Recipient, kind: str, what: str = "vagas") -> str:
     first = (p.nome or "").split(" ")[0]
     hello = f"Olá, {first}!" if first else "Olá!"

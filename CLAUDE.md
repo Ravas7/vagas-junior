@@ -43,6 +43,7 @@ docs/              painel em HTML, CSS e JS puro (sem build)
   admin.js         janela "Acessos": o admin libera ou recusa quem criou conta
   dados.html       página "Seus dados": o que é guardado, quem vê, botão de apagar a conta
   conta.js         janela "Apagar minha conta" (abre com #apagar-conta; quem apaga é Sync.deleteAccount)
+  tema.js          aplica o tema antes de desenhar (no <head>); pwa.js registra o sw.js e o "Instalar o app"
   sw.js            painel instalável (PWA): rede primeiro, cópia para abrir sem internet
   manifest.webmanifest  nome, cores e ícones do app (icon-192, icon-512, icon-maskable-512)
 tests/             pytest (Python) e node:test (store.js, perfil.js)
@@ -52,8 +53,8 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 208 testes, todos offline
-node --test tests/store.test.js tests/perfil.test.js   # 30 testes do quadro e do perfil (Node 20+)
+python -m pytest -q                  # 210 testes, todos offline
+node --test tests/store.test.js tests/perfil.test.js   # 31 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só
@@ -77,6 +78,15 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 - Textos do painel e do e-mail em português, frases curtas, sem jargão.
 - Visual: cores em variáveis no topo de `docs/style.css`. `--neon` é o verde de preenchimento (botões, logo), `--accent` o verde de texto e borda (mais escuro no tema claro, para dar leitura), `--glow-c` a cor do brilho. Logo é o pin com R desenhado direto no HTML (classe `pin`), para seguir o tema. Tema fica no menu da conta. No celular (até 860px) as abas viram a barra de navegação de baixo (`bottom-nav`).
 - O filtro do perfil existe em Python (`evaluate_profile` e `evaluate_freela` em `filters.py`) e em JS (`evaluate` e `evaluateFreela` em `docs/perfil.js`). Mudou um, mude o outro e rode `python tests/make_paridade.py`; o teste de paridade compara os dois.
+
+## Segurança (o site é divulgado publicamente)
+
+- **Registros do GitHub Actions são públicos.** O robô nunca escreve nome nem e-mail de quem usa o Ragas: use `avisos.who(p)` ("pessoa a1b2c3") e `avisos.mask_email()`. Mensagem de erro de SMTP também não (pode trazer o e-mail). Há teste para isso.
+- **CSP** em `index.html` e `dados.html` (meta `Content-Security-Policy`). Nada de `<script>` escrito no HTML nem `onclick=` no HTML: código vai em arquivo `.js`. Endereço externo novo (fonte, API, imagem) precisa entrar na CSP, senão o navegador bloqueia.
+- **Links só http(s):** `classify` descarta vaga com link `javascript:`/`data:`; o painel usa `safeUrl` (app.js) e o quadro limpa em `store.js`.
+- Texto que vem de fora entra na página só como texto (`h()` usa `createTextNode`). Não use `innerHTML` com dado de vaga, perfil ou pessoa.
+- **Cadastro com e-mail e senha** só pede acesso depois de confirmar o e-mail (tela "Confirme seu e-mail"; a regra do Firestore exige `email_verified` no `create` de `acesso/`). Quem já estava liberado segue entrando.
+- Regras do Firestore: ao mudar, mande ao dono o bloco completo já preenchido (admin = e-mail dele, robô = e-mail do robô), não o do README com `SEU_EMAIL`.
 
 ## Quadro de candidaturas
 

@@ -113,10 +113,10 @@ def link(client, people: list, links: dict, tok: str, log=print) -> dict:
         try:
             client.set_doc(f"telegram/{p.uid}", data)
         except SourceError as exc:
-            log(f"ERRO ao ligar o Telegram de {p.nome or p.email}: {exc}")
+            log(f"ERRO ao ligar o Telegram de pessoa {p.uid[:6]}: {exc}")   # registros do Actions são públicos
             continue
         links[p.uid] = data
-        log(f"Telegram ligado: {p.nome or p.email}")
+        log(f"Telegram ligado: pessoa {p.uid[:6]}")
         try:
             send(tok, chat_id, f"Pronto, {escape((p.nome or tg_name or '').split(' ')[0]) or 'tudo certo'}! "
                                "Seus avisos de vagas do Ragas agora chegam por aqui.")

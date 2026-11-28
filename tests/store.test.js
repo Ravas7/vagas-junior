@@ -173,3 +173,11 @@ test("normalize corrige dados estranhos", () => {
   assert.equal(a.note, "5");
   assert.equal(C.normalize({ id: "y", stage: "encerrada", stoppedAt: "encerrada" }).stoppedAt, "");
 });
+
+test("link do cartão: só http(s); javascript: vindo de arquivo importado é apagado", () => {
+  const s = C.createStore({ storage: null });
+  s.add({ id: "a", title: "Vaga", url: "javascript:alert(1)" });
+  s.add({ id: "b", title: "Vaga", url: "https://vagas.com/1" });
+  assert.equal(s.get("a").url, "");
+  assert.equal(s.get("b").url, "https://vagas.com/1");
+});

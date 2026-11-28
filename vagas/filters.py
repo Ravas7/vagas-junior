@@ -809,6 +809,9 @@ def classify(job: Job, cfg: dict) -> bool:
     (nível, subárea, tecnologias, anos...) e o resultado no perfil padrão
     (padrao, score, reasons), que é o que o e-mail usa.
     """
+    if re.match(r"\s*[a-z][a-z0-9+.-]*:", job.url, re.I) and not re.match(r"\s*https?://", job.url, re.I):
+        job.score, job.reasons, job.padrao = 0, ["link inválido (só http/https)"], False
+        return False                          # "javascript:..." vindo de uma fonte nunca vira link no painel
     if job.tipo == "freela":
         return classify_freela(job, cfg)
     _prepare(job, cfg)

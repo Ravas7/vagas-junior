@@ -190,6 +190,7 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
        match /acesso/{uid} {
          allow read: if admin() || robo() || (logado() && request.auth.uid == uid);
          allow create: if admin() || logado() && request.auth.uid == uid
+                       && request.auth.token.email_verified == true          // e-mail confirmado (Google já vem confirmado)
                        && request.resource.data.keys().hasOnly(['email', 'nome', 'status', 'pedidoEm'])
                        && request.resource.data.status == 'pendente'
                        && request.resource.data.email == request.auth.token.email

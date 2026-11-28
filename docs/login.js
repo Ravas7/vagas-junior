@@ -104,14 +104,15 @@
   }
   window.AccountMenu = { open: () => menuOpen(true), close: () => menuOpen(false) };
 
-  /* conta criada, mas ainda sem acesso: pendente, recusado ou erro ao conferir */
+  /* conta criada, mas ainda sem acesso: e-mail a confirmar, pendente, recusado ou erro ao conferir */
   function paintAccess(status) {
     const box = $("#gate-access");
     const st = status.access;
-    const show = !!status.user && ["pendente", "recusado", "erro"].includes(st);
+    const show = !!status.user && ["verificar", "pendente", "recusado", "erro"].includes(st);
     box.hidden = !show;
     if (!show) return;
     const who = status.user.email ? ` (${status.user.email})` : "";
+    if (st === "verificar") return paintVerify(box, status.user.email || "");
     const texts = {
       pendente: ["Pedido enviado", `Sua conta${who} foi criada e o pedido de acesso chegou para a liberação. `
         + "Assim que for aprovado, esta tela abre sozinha. Pode fechar e voltar depois."],
@@ -127,6 +128,30 @@
       btn("Apagar meu pedido e minha conta", () => window.Conta && window.Conta.open()));
   }
 
+  /* conta de e-mail e senha: precisa clicar no link do e-mail antes de pedir acesso */
+  function paintVerify(box, email) {
+    const msg = Object.assign(document.createElement("p"), { className: "gate-msg" });
+    box.className = "gate-access is-verificar";
+    box.replaceChildren(
+      Object.assign(document.createElement("h2"), { textContent: "Confirme seu e-mail" }),
+      Object.assign(document.createElement("p"), { textContent: `Mandamos um link para ${email}. Abra o e-mail `
+        + "(olhe também o spam), clique no link e volte aqui. Depois disso o pedido de acesso é enviado." }),
+      msg,
+      Object.assign(btn("Já confirmei", async () => {
+        msg.textContent = "Conferindo…";
+        try {
+          const ok = await Sync.recheckVerification();
+          msg.textContent = ok ? "" : "Ainda não aparece confirmado. Clique no link do e-mail e tente de novo.";
+        } catch (e) { msg.textContent = Sync.authMessage(e); }
+      }), { className: "kb-btn primary gate-verify-ok" }),
+      btn("Reenviar e-mail", async () => {
+        try { await Sync.resendVerification(); msg.textContent = "E-mail reenviado."; }
+        catch (e) { msg.textContent = Sync.authMessage(e); }
+      }),
+      btn("Sair e entrar com outra conta", () => Sync.signOut()),
+      btn("Apagar minha conta", () => window.Conta && window.Conta.open()));
+  }
+
   function paint(status) {
     const configured = Sync.configured || !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey);
     const user = status.user;
@@ -137,7 +162,7 @@
     paintAccess(status);
     if (open) return;
 
-    const blocked = !!user && ["pendente", "recusado", "erro"].includes(status.access);
+    const blocked = !!user && ["verificar", "pendente", "recusado", "erro"].includes(status.access);
     const waiting = !blocked && (status.mode === "connecting" || (!!user && status.access === "checking"));
     const failed = !blocked && !user && status.mode === "error";
     $("#gate-wait").hidden = !waiting;
