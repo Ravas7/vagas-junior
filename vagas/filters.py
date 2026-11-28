@@ -84,7 +84,7 @@ TECH_TERMS = {
     "Redes": ["redes de computadores", "tcp/ip", "ccna", "roteadores", "switches"],
     "Hardware": ["hardware", "manutencao de computadores", "manutencao de notebooks"],
 }
-# Suporte técnico: só entra com salário informado igual ou acima de support_min_salary.
+# Suporte técnico: uma área como as outras (a pessoa marca no perfil se quer ver).
 SUPPORT_TERMS = [
     "suporte tecnico", "analista de suporte", "tecnico de suporte", "suporte n1", "suporte n2",
     "suporte nivel 1", "suporte nivel 2", "suporte ti", "suporte de ti", "suporte a usuarios",
@@ -406,8 +406,8 @@ PROFILE_DEFAULTS = {
     "exterior": True,               # aceita remoto de empresa/local fora do Brasil
     "ingles_max": "intermediario",  # basico | intermediario | qualquer
     "anos_max": 2,                  # pede mais anos que isso: descarta (0 = sem limite)
-    "suporte_salario_min": 3200,
-    "suporte_sem_salario": False,   # True = mostra suporte sem salário informado
+    "salario_min": 0,               # R$ por mês, para QUALQUER vaga que informa salário (0 = sem mínimo)
+    "sem_salario": True,            # False = com mínimo, esconde vaga que não informa salário
     "estado": "",                   # UF; sem cidades, aceita o estado inteiro
     "presencial": True,             # False = só remoto
     "tecnologias": [],              # nomes de TECH_TERMS; dão +10 de nota
@@ -443,8 +443,8 @@ def profile_from_config(cfg: dict) -> dict:
         "exterior": bool(cfg.get("remote_abroad", True)),
         "ingles_max": cfg.get("max_english", "intermediario"),
         "anos_max": cfg.get("max_years", 2),
-        "suporte_salario_min": cfg.get("support_min_salary", 3200),
-        "suporte_sem_salario": cfg.get("support_unknown_salary", "descartar") == "incluir",
+        "salario_min": int(cfg.get("min_salary", 0) or 0),
+        "sem_salario": cfg.get("unknown_salary", "incluir") != "descartar",
         "estado": (cfg.get("state") or "").upper(),
         "estados_preferidos": [s.upper() for s in cfg.get("preferred_states", [])],
         "bonus_remoto": cfg.get("remote_bonus", 10),
@@ -580,12 +580,12 @@ def evaluate_profile(job: Job, base: Result, perfil: dict) -> Result:
     if cap in ENGLISH_RANK and ENGLISH_RANK[english] > ENGLISH_RANK[cap]:
         return rejected(f"exige inglês {english} (limite: {cap})", abroad)
 
-    if area == "suporte":
-        minimum = perfil.get("suporte_salario_min", 3200)
-        if job.salary <= 0 and not perfil.get("suporte_sem_salario", False):
-            return rejected(f"suporte sem salário informado (mínimo R$ {minimum})")
+    minimum = int(perfil.get("salario_min", 0) or 0)          # vale para qualquer área
+    if minimum:
+        if job.salary <= 0 and not perfil.get("sem_salario", True):
+            return rejected(f"salário não informado (mínimo R$ {minimum})")
         if 0 < job.salary < minimum:
-            return rejected(f"suporte paga R$ {job.salary} (mínimo R$ {minimum})")
+            return rejected(f"paga R$ {job.salary} (mínimo R$ {minimum})")
 
     tech_area = area in ("dev", "correlata")      # suporte e hardware não olham experiência
     years, max_years = base.years, int(perfil.get("anos_max", 0) or 0)

@@ -16,7 +16,8 @@ test("perfil padrão (do config.toml) vira o formato do formulário", () => {
   assert.ok(padrao.cidades.includes("Camaçari"));
   assert.equal(padrao.exterior, true);
   assert.equal(padrao.ingles_max, "intermediario");
-  assert.equal(padrao.suporte_salario_min, 3200);
+  assert.equal(padrao.salario_min, 0);
+  assert.equal(padrao.sem_salario, true);
   assert.equal(padrao.anos_max, 2);
   assert.deepEqual(P.validate(padrao), []);
 });

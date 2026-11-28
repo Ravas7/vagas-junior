@@ -55,10 +55,11 @@ exclude_companies = []
 exclude_title_terms = []          # ex.: ["suporte", "sap"]
 dev_terms_extra = []              # ex.: ["abap"]
 related_terms_extra = []
-# Suporte técnico entra SÓ se a vaga informar salário igual ou acima do mínimo.
+# Suporte técnico é uma área como as outras (cada pessoa marca no perfil se quer ver).
 support_enabled = true
-support_min_salary = 3200         # em R$ por mês; vale para N1, N2, service desk...
-support_unknown_salary = "descartar"   # "incluir" = também mostra suporte sem salário informado
+# Salário mínimo para QUALQUER vaga que informa salário (0 = sem mínimo).
+min_salary = 0                    # em R$ por mês
+unknown_salary = "incluir"        # "descartar" = com mínimo, esconde vaga sem salário informado
 support_terms_extra = []
 junior_terms_extra = []
 big_companies_extra = []          # empresas que você quer tratar como "grande", ex.: ["Sicredi"]

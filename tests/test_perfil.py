@@ -35,7 +35,7 @@ def test_perfil_padrao_reproduz_o_config():
     assert PADRAO["remoto"] and PADRAO["exterior"]
     assert PADRAO["ingles_max"] == "intermediario"
     assert PADRAO["anos_max"] == CFG["max_years"]
-    assert PADRAO["suporte_salario_min"] == 3200 and PADRAO["suporte_sem_salario"] is False
+    assert PADRAO["salario_min"] == 0 and PADRAO["sem_salario"] is True
     assert PADRAO["nota_minima"] == CFG["min_score"]
 
 
@@ -128,10 +128,12 @@ def test_areas_e_suporte_do_perfil():
     assert not com_perfil(dados, areas=["dev"]).accepted
 
     suporte = job("Analista de Suporte N1", salary=2800)
-    assert not com_perfil(suporte).accepted                            # abaixo de R$ 3.200
-    assert com_perfil(suporte, suporte_salario_min=2500).accepted
-    assert com_perfil(job("Analista de Suporte N1"), suporte_sem_salario=True).accepted
-    assert com_perfil(job("Analista de Suporte Pleno", salary=3500)).accepted   # regra de antes
+    assert com_perfil(suporte).accepted                                # suporte é área como as outras
+    assert not com_perfil(suporte, areas=["dev"]).accepted             # quem não marcou suporte não vê
+    assert not com_perfil(suporte, salario_min=3000).accepted          # mínimo vale para qualquer vaga
+    assert not com_perfil(job("Desenvolvedor Python Jr", salary=2800), salario_min=3000).accepted
+    assert com_perfil(job("Analista de Suporte N1"), salario_min=3000).accepted            # sem salário: entra
+    assert not com_perfil(job("Analista de Suporte N1"), salario_min=3000, sem_salario=False).accepted
 
 
 def test_nota_minima_do_perfil():

@@ -121,31 +121,28 @@ def test_area_correlata_sem_junior_ou_desligada_nao_passa():
     assert not filters.evaluate(job("Analista de Dados Sênior"), CFG).accepted
 
 
-def test_suporte_so_com_salario_minimo():
-    base = {**CFG, "support_min_salary": 3200}
-    sem = job("Analista de Suporte Técnico N1")
-    r = filters.evaluate(sem, base)
-    assert not r.accepted and r.area == "suporte" and "sem salário" in r.reasons[0]
-
+def test_salario_minimo_vale_para_qualquer_vaga():
+    base = {**CFG, "min_salary": 3200}
+    sup = job("Analista de Suporte Técnico N1")
+    r = filters.evaluate(sup, base)
+    assert r.accepted and r.area == "suporte" and "salário não informado" in r.reasons   # sem salário: entra
     pouco = job("Analista de Suporte Técnico N1"); pouco.salary = 2400
     assert not filters.evaluate(pouco, base).accepted
-
+    dev = job("Desenvolvedor Python Jr"); dev.salary = 2400
+    r = filters.evaluate(dev, base)
+    assert not r.accepted and "mínimo R$ 3200" in r.reasons[0]                         # vale para dev também
+    assert filters.evaluate(job("Desenvolvedor Python Jr"), {**base, "unknown_salary": "descartar"}).accepted is False
     ok = job("Analista de Suporte Técnico N1"); ok.salary = 3200
     r = filters.evaluate(ok, base)
-    assert r.accepted and r.area == "suporte" and any("3200" in x for x in r.reasons)
+    assert r.accepted and any("3200" in x for x in r.reasons)
     assert r.score < filters.evaluate(job("Desenvolvedor Python Jr"), CFG).score     # dev vem na frente
-
-    pleno = job("Analista de Service Desk Pleno"); pleno.salary = 4000                  # N2/pleno pode
-    assert filters.evaluate(pleno, base).accepted
     senior = job("Coordenador de Suporte Técnico"); senior.salary = 9000
     assert not filters.evaluate(senior, base).accepted
 
 
-def test_suporte_salario_desconhecido_pode_ser_incluido():
+def test_suporte_e_area_como_as_outras():
     j = job("Técnico de Suporte N1")
-    assert not filters.evaluate(j, CFG).accepted
-    r = filters.evaluate(j, {**CFG, "support_unknown_salary": "incluir"})
-    assert r.accepted and "salário não informado" in r.reasons
+    assert filters.evaluate(j, CFG).accepted                                         # sem mínimo: entra
     assert not filters.evaluate(job("Técnico de Suporte N1"), {**CFG, "support_enabled": False}).accepted
 
 
@@ -164,7 +161,7 @@ def test_apply_le_salario_da_descricao():
     j = job("Analista de Suporte N1", description="Salário: R$ 3.500,00 + VR de R$ 1.200,00. CLT.")
     assert filters.apply(j, CFG) and j.salary == 3500 and j.area == "suporte"
     j2 = job("Analista de Suporte N1", description="Benefício VR R$ 1.200,00. Sem informação de pagamento.")
-    assert not filters.apply(j2, CFG) and j2.salary == 0
+    assert filters.apply(j2, CFG) and j2.salary == 0
 
 
 def test_extract_salary_e_monthly():
@@ -284,9 +281,9 @@ def test_local_pontua_e_suporte_respeita_local():
     sem_filtro = filters.evaluate(com_local(location="Salvador, BA", workplace="presencial"), CFG)
     assert ssa.score == sem_filtro.score + 10 and "região de Salvador" in ssa.reasons
     sup = com_local("Analista de Suporte N1", location="São Paulo", workplace="presencial"); sup.salary = 4000
-    assert not filters.evaluate(sup, {**LOC, "support_min_salary": 3200}).accepted
+    assert not filters.evaluate(sup, {**LOC, "min_salary": 3200}).accepted
     sup2 = com_local("Analista de Suporte N1", location="Salvador", workplace="presencial"); sup2.salary = 4000
-    assert filters.evaluate(sup2, {**LOC, "support_min_salary": 3200}).accepted
+    assert filters.evaluate(sup2, {**LOC, "min_salary": 3200}).accepted
 
 
 def test_noticia_nao_passa_por_filtro_de_local():

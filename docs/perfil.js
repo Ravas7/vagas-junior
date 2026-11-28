@@ -75,8 +75,8 @@
       local_desconhecido: bool(p.local_desconhecido, false),
       ingles_max: INGLES.includes(p.ingles_max) ? p.ingles_max : "intermediario",
       anos_max: int(p.anos_max, 2),
-      suporte_salario_min: int(p.suporte_salario_min, 0),
-      suporte_sem_salario: bool(p.suporte_sem_salario, false),
+      salario_min: int(p.salario_min, 0),
+      sem_salario: bool(p.sem_salario, true),
       tecnologias: unique(list(p.tecnologias)),
       so_minhas_techs: bool(p.so_minhas_techs, false) && list(p.tecnologias).length > 0,
       estados_preferidos: list(p.estados_preferidos),
@@ -202,10 +202,10 @@
     }
 
     const salary = job.salary || 0;
-    if (area === "suporte") {
-      const minimum = get(p, "suporte_salario_min", 3200);
-      if (salary <= 0 && !get(p, "suporte_sem_salario", false)) return no(`suporte sem salário informado (mínimo R$ ${minimum})`);
-      if (salary > 0 && salary < minimum) return no(`suporte paga R$ ${salary} (mínimo R$ ${minimum})`);
+    const minimum = Math.trunc(Number(get(p, "salario_min", 0)) || 0);   // vale para qualquer área
+    if (minimum) {
+      if (salary <= 0 && !get(p, "sem_salario", true)) return no(`salário não informado (mínimo R$ ${minimum})`);
+      if (salary > 0 && salary < minimum) return no(`paga R$ ${salary} (mínimo R$ ${minimum})`);
     }
 
     const techArea = area === "dev" || area === "correlata";
@@ -387,7 +387,12 @@
           h("select", { name: "anos_max" },
             [[1, "Até 1 ano pedido"], [2, "Até 2 anos pedidos"], [3, "Até 3 anos pedidos"], [5, "Até 5 anos pedidos"], [0, "Não importa"]]
               .map(([v, t]) => h("option", { value: v, selected: p.anos_max === v }, t)))),
-        h("p", { class: "pf-hint" }, "Vagas que pedem mais anos de experiência ficam de fora, a não ser que digam júnior no título.")),
+        h("p", { class: "pf-hint" }, "Vagas que pedem mais anos de experiência ficam de fora, a não ser que digam júnior no título."),
+        h("label", { class: "pf-inline" }, h("span", {}, "Salário mínimo (R$ por mês)"),
+          h("input", { name: "salario_min", type: "number", min: 0, step: 100, inputmode: "numeric", value: p.salario_min || "",
+            placeholder: "Sem mínimo" })),
+        check("sem_salario", "Mostrar também vagas sem salário informado", p.sem_salario,
+          "A maioria das vagas não informa o salário. Desligado, só aparecem as que dizem quanto pagam.")),
 
       h("fieldset", { class: "pf-sec" }, h("legend", {}, "Onde?"),
         check("presencial", "Presencial ou híbrido", p.presencial),
@@ -409,11 +414,6 @@
               .map(([v, t]) => h("option", { value: v, selected: p.ingles_max === v }, t)))),
         check("local_desconhecido", "Mostrar vagas sem local informado", p.local_desconhecido,
           "Muitas vagas não dizem onde são. Ligado, elas aparecem também.")),
-
-      h("fieldset", { class: "pf-sec", "data-show": "area-suporte" }, h("legend", {}, "Suporte técnico"),
-        h("label", { class: "pf-inline" }, h("span", {}, "Salário mínimo (R$ por mês)"),
-          h("input", { name: "suporte_salario_min", type: "number", min: 0, step: 100, inputmode: "numeric", value: p.suporte_salario_min || "" })),
-        check("suporte_sem_salario", "Mostrar também suporte sem salário informado", p.suporte_sem_salario)),
 
       h("fieldset", { class: "pf-sec" }, h("legend", {}, "Tecnologias que você usa"),
         h("p", { class: "pf-hint" }, "Vagas que citam uma delas sobem na lista e ganham destaque."),
@@ -506,8 +506,8 @@
       cidades: f.elements.cidades.value.split(",").map((c) => c.trim()).filter(Boolean),
       ingles_max: f.elements.ingles_max.value,
       anos_max: Number(f.elements.anos_max.value),
-      suporte_salario_min: Number(f.elements.suporte_salario_min.value || 0),
-      suporte_sem_salario: on("suporte_sem_salario"),
+      salario_min: Number(f.elements.salario_min.value || 0),
+      sem_salario: on("sem_salario"),
       tecnologias: vals("tecnologias"),
       so_minhas_techs: on("so_minhas_techs"),
       aviso: {
@@ -536,7 +536,6 @@
     showIf('[data-show="aviso"]', f.elements.aviso_ativo.checked);
     showIf('[data-show="freelas"]', f.elements.fr_ver.checked);
     showIf('[data-show="telegram"]', !!f.querySelector('input[name="aviso_canal"][value="telegram"]:checked:not(:disabled)'));
-    showIf('[data-show="area-suporte"]', !!f.querySelector('input[name="areas"][value="suporte"]:checked'));
     showIf('[data-show-uf="BA"]', f.elements.estado.value === "BA");
     f.querySelector(".pf-errors").textContent = "";
   }

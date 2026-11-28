@@ -12,7 +12,8 @@ Quem usa: uma pessoa que trabalha com suporte, termina a faculdade no meio de 20
 
 - Dev júnior em Salvador/região ou remoto no Brasil.
 - Remoto do exterior só se o inglês exigido for até intermediário.
-- Suporte técnico só com salário de pelo menos R$ 3.200.
+- Suporte técnico é uma área como as outras: aparece para quem marca no perfil, sem exigência de salário.
+- Salário mínimo é geral (perfil `salario_min`, config `min_salary`): vale para qualquer vaga que informa salário. Vaga sem salário continua aparecendo, a não ser que a pessoa desligue (`sem_salario`).
 - Notícias de processos seletivos de grandes empresas entram numa seção própria.
 - Notícia de vaga de outro estado fica de fora (vale o `state` do config ou o estado do perfil). Notícia remota, EaD, nacional ou sem lugar citado aparece para todos.
 - Tudo isso fica em `config.toml`. Prefira ajustar lá a mexer no código.
