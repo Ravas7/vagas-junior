@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Seus dados · Ragas</title>
+  <meta name="description" content="O que o Ragas guarda sobre você, quem vê e como apagar a sua conta.">
+  <meta name="theme-color" content="#070b14">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon.ico" sizes="48x48">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&family=Syne:wght@700&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    try { const t = localStorage.getItem("vagas-junior:tema:v1"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body class="doc-page">
+  <main class="doc">
+    <a class="doc-back" href="./">← Voltar ao painel</a>
+    <a class="doc-brand" href="./" aria-label="Ragas, central de vagas">
+      <svg class="pin" viewBox="18 8 64 88" width="26" height="36" aria-hidden="true">
+        <path class="pin-body" d="M50 94C50 94 20 62 20 40a30 30 0 1 1 60 0C80 62 50 94 50 94Z"/>
+        <path class="pin-r" d="M40 27V55M40 27H50a9 9 0 0 1 0 18H40M49 45L59 55" fill="none" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>ragas</span>
+    </a>
+
+    <h1>Seus dados</h1>
+    <p class="doc-lead">O Ragas é um projeto pessoal, feito para amigos usarem de graça. Esta página diz, sem letra miúda, o que fica guardado sobre você e como apagar tudo.</p>
+
+    <section>
+      <h2>O que guardamos</h2>
+      <ul>
+        <li><b>Sua conta:</b> nome e e-mail. Se você entrou com senha, quem guarda a senha é o Google (Firebase); nós não temos acesso a ela.</li>
+        <li><b>Seu perfil:</b> níveis, áreas, estado, cidades, tecnologias, salário mínimo de suporte e as preferências de aviso.</li>
+        <li><b>Seu quadro de candidaturas:</b> as vagas que você marcou, a etapa de cada uma e as anotações que você fizer.</li>
+        <li><b>Telegram</b> (só se você ligou): o número da conversa com o bot e o seu primeiro nome no Telegram.</li>
+        <li><b>Pedido de acesso:</b> se está esperando, liberado ou recusado, e quando foi pedido.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Onde fica</h2>
+      <p>No Firebase, um serviço do Google, com os dados em São Paulo. Uma cópia do perfil e do quadro fica também no seu navegador, para o painel abrir rápido e funcionar sem internet. As vagas em si são públicas e não têm nada seu.</p>
+    </section>
+
+    <section>
+      <h2>Quem vê</h2>
+      <ul>
+        <li><b>Você:</b> tudo que é seu.</li>
+        <li><b>O administrador:</b> só nome, e-mail e a situação do pedido de acesso, para liberar quem entra. O painel não mostra a ele seu perfil nem seu quadro. Como dono do projeto no Firebase, ele teria como abrir esses dados pelo console do Google, mas só faria isso para corrigir algum problema, se você pedir.</li>
+        <li><b>O robô de avisos:</b> lê seu perfil duas vezes por dia, só para escolher as vagas que combinam com você e mandar por e-mail ou Telegram.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>O que não fazemos</h2>
+      <p>Não vendemos nem passamos seus dados para ninguém, não mostramos anúncios e não usamos rastreadores. Os avisos podem ser desligados quando quiser em Meu perfil.</p>
+    </section>
+
+    <section class="doc-danger">
+      <h2>Apagar sua conta</h2>
+      <p>Apaga para sempre o perfil, o quadro de candidaturas, a ligação com o Telegram, o pedido de acesso, a conta de login e a cópia guardada neste navegador. Não tem como desfazer.</p>
+      <p>O painel vai pedir sua senha, ou uma confirmação do Google, antes de apagar.</p>
+      <a class="kb-btn danger" href="./#apagar-conta">Apagar minha conta</a>
+    </section>
+
+    <p class="doc-foot">Dúvidas? Fale com quem te convidou para o Ragas.</p>
+  </main>
+</body>
+</html>

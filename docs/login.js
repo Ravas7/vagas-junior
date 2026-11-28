@@ -76,6 +76,7 @@
     }
     $("#acct-perfil").hidden = !logged;
     $("#acct-sair").hidden = !logged;
+    $("#acct-dados").hidden = !logged;
     $("#acct-acessos").hidden = !(logged && admin && window.Admin);
     if (admin && window.Admin && !$("#acct-acessos").contains(window.Admin.badge())) {
       $("#acct-acessos").append(window.Admin.badge());
@@ -122,7 +123,8 @@
     box.replaceChildren(
       Object.assign(document.createElement("h2"), { textContent: title }),
       Object.assign(document.createElement("p"), { textContent: body }),
-      btn("Sair e entrar com outra conta", () => Sync.signOut()));
+      btn("Sair e entrar com outra conta", () => Sync.signOut()),
+      btn("Apagar meu pedido e minha conta", () => window.Conta && window.Conta.open()));
   }
 
   function paint(status) {

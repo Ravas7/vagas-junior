@@ -21,7 +21,7 @@
     configured: false,
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     hasAccess: () => ["admin", "aprovado"].includes(Sync.status.access),
-    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile, loadTelegram,
+    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile, loadTelegram, deleteAccount, loginKind,
     watchRequests, decide,
   };
   window.Sync = Sync;
@@ -260,6 +260,40 @@
     if (!ref) return null;
     const snap = await fb.fs.getDoc(ref);
     return snap.exists() ? snap.data() : null;
+  }
+
+  /* Como a pessoa entra: "password" (e-mail e senha) ou "google". Serve para pedir a confirmação certa. */
+  function loginKind() {
+    const ids = ((auth && auth.currentUser && auth.currentUser.providerData) || []).map((p) => p.providerId);
+    return ids.includes("password") ? "password" : "google";
+  }
+
+  /* Apaga tudo da pessoa: candidaturas, perfil, Telegram, pedido de acesso e a conta de login.
+   * Antes confirma quem é (senha ou janela do Google): o Firebase só deixa apagar a conta com login recente.
+   * A ordem importa: os dados em users/ só podem ser apagados enquanto o acesso ainda existe. */
+  async function deleteAccount(password) {
+    const u = auth && auth.currentUser;
+    if (!u || !db) throw { code: "auth/network-request-failed" };
+    if (loginKind() === "password") {
+      await fb.au.reauthenticateWithCredential(u, fb.au.EmailAuthProvider.credential(u.email, password || ""));
+    } else {
+      await fb.au.reauthenticateWithPopup(u, new fb.au.GoogleAuthProvider());
+    }
+    stopAll();                                              // para de ouvir e de enviar o quadro
+    const uid = u.uid;
+    if (Sync.hasAccess()) {                                 // quem ainda espera aprovação não tem dados em users/
+      const cands = await fb.fs.getDocs(fb.fs.collection(db, "users", uid, "candidaturas"));
+      for (let i = 0; i < cands.docs.length; i += 400) {
+        const batch = fb.fs.writeBatch(db);
+        cands.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+      }
+      await fb.fs.deleteDoc(fb.fs.doc(db, "users", uid, "perfil", "atual"));
+      await fb.fs.deleteDoc(fb.fs.doc(db, "telegram", uid));
+    }
+    await fb.fs.deleteDoc(fb.fs.doc(db, "acesso", uid));
+    await fb.au.deleteUser(u);
+    try { localStorage.clear(); } catch { /* modo privado */ }
   }
 
   /* Telegram ligado? O robô grava telegram/{uid} quando a pessoa toca em Começar no bot. */

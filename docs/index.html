@@ -89,7 +89,7 @@
       </section>
     </div>
 
-    <p class="gate-foot">Suas candidaturas e seu perfil ficam guardados na sua conta.</p>
+    <p class="gate-foot">Suas candidaturas e seu perfil ficam guardados na sua conta. <a href="dados.html">Seus dados</a></p>
   </main>
 
   <header class="top">
@@ -125,6 +125,7 @@
             <button type="button" data-theme-set="dark" aria-pressed="false">Escuro</button>
           </div>
         </div>
+        <a class="acct-item" id="acct-dados" href="dados.html" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 8v5M12 16v.5"/></svg><span>Seus dados</span></a>
         <button type="button" class="acct-item" id="acct-instalar" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5"/><path d="M5 19h14"/></svg><span>Instalar o app</span></button>
         <button type="button" class="acct-item" id="acct-sair" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/></svg><span>Sair</span></button>
       </div>
@@ -250,6 +251,7 @@
   <script src="perfil.js"></script>
   <script src="admin.js"></script>
   <script src="kanban.js"></script>
+  <script src="conta.js"></script>
   <script src="app.js"></script>
   <script>
     // painel instalável: abre rápido e funciona sem internet com a última lista (sw.js)

@@ -2,9 +2,9 @@
  * Com internet, busca sempre a versão nova (rede primeiro) e atualiza a cópia.
  * Sem internet, abre com a cópia. Só arquivos do próprio site: Firebase e links externos passam direto.
  * Mudou a lista de arquivos? Troque a VERSAO para limpar as cópias antigas. */
-const VERSAO = "ragas-v1";
+const VERSAO = "ragas-v2";
 const PAINEL = [
-  "./", "index.html", "style.css", "app.js", "store.js", "sync.js", "login.js", "perfil.js", "admin.js", "kanban.js",
+  "./", "index.html", "style.css", "app.js", "store.js", "sync.js", "login.js", "perfil.js", "admin.js", "kanban.js", "conta.js", "dados.html",
   "firebase-config.js", "perfil-padrao.json", "manifest.webmanifest", "favicon.svg", "icon-192.png", "data/jobs.json",
 ];
 

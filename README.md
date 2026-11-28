@@ -182,6 +182,7 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
        match /telegram/{uid} {
          allow read: if robo() || (logado() && request.auth.uid == uid);
          allow write: if robo();
+         allow delete: if logado() && request.auth.uid == uid;     // "Apagar minha conta"
        }
 
        // pedidos de acesso: a pessoa cria o próprio pedido (pendente); só o admin decide
@@ -192,11 +193,14 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
                        && request.resource.data.status == 'pendente'
                        && request.resource.data.email == request.auth.token.email
                        && request.resource.data.nome is string && request.resource.data.nome.size() <= 60;
-         allow update, delete: if admin();
+         allow update: if admin();
+         allow delete: if admin() || (logado() && request.auth.uid == uid);   // "Apagar minha conta"
        }
      }
    }
    ```
+   **Apagar conta:** a página `dados.html` (link "Seus dados" no menu e na tela de entrada) diz o que fica guardado. O botão "Apagar minha conta" pede a senha (ou confirmação do Google) e apaga candidaturas, perfil, Telegram, pedido de acesso e a conta de login.
+
    **Como funciona o acesso:** qualquer pessoa cria conta na tela de entrada. Na primeira vez, o painel cria sozinho um pedido em `acesso/{uid}` e mostra "Pedido enviado". Você (admin) vê o link **Acessos** no topo, com o número de pedidos esperando, e clica em **Liberar** ou **Recusar**. Quando libera, a tela da pessoa abre sozinha. Dá para **Bloquear** depois. Quem é admin fica só nas regras, não no código do site.
 
    **Avisos por pessoa (conta do robô):** o robô do GitHub lê a lista de liberados e o perfil de cada um para mandar os avisos de vagas novas.

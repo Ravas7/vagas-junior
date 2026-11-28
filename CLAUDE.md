@@ -40,6 +40,8 @@ docs/              painel em HTML, CSS e JS puro (sem build)
   perfil.js        regras e filtro do perfil (cópia em JS de evaluate_profile) e janela "Meu perfil"
   perfil-padrao.json  perfil do config.toml e opções do formulário (python -m vagas perfil)
   admin.js         janela "Acessos": o admin libera ou recusa quem criou conta
+  dados.html       página "Seus dados": o que é guardado, quem vê, botão de apagar a conta
+  conta.js         janela "Apagar minha conta" (abre com #apagar-conta; quem apaga é Sync.deleteAccount)
   sw.js            painel instalável (PWA): rede primeiro, cópia para abrir sem internet
   manifest.webmanifest  nome, cores e ícones do app (icon-192, icon-512, icon-maskable-512)
 tests/             pytest (Python) e node:test (store.js, perfil.js)
@@ -96,7 +98,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - (feito) Cadastro com e-mail e senha, além do Google.
    - Aviso de vagas novas por pessoa, por e-mail ou Telegram (a pessoa escolhe). Em andamento: A (robô lê o Firebase com a conta `FIREBASE_ROBO_EMAIL`/`FIREBASE_ROBO_SENHA`) e B (e-mail por pessoa; o e-mail do config.toml só sai se o Firebase falhar) C (opções no Meu perfil, campo `aviso`: ativo, canal, frequência, telegram_codigo) e D (Telegram: Secret `TELEGRAM_BOT_TOKEN`, `telegram_bot` no `[avisos]` do config, conversa em `telegram/{uid}`; sem ligar, vai por e-mail) feitas.
    - (feito) Painel instalável no celular (PWA): `sw.js` + `manifest.webmanifest`, item "Instalar o app" no menu da conta. Só registra em https (no localhost não, para não guardar cópia velha enquanto mexe).
-   - Página curta sobre quais dados são guardados e como apagar a conta.
+   - (feito) Página "Seus dados" (`dados.html`) e "Apagar minha conta". Se mudar o que é guardado, atualize o texto dela.
 7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.
 8. Freelas de TI (depois do Telegram, com plano próprio): trazer projetos freelancer da área de TI para o painel. Falta decidir se ficam junto das vagas ou numa aba só deles, e testar quais sites dão para coletar (API pública ou endpoint aberto).
 
