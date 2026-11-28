@@ -81,7 +81,7 @@
     }
     // O arquivo traz tudo que passou na base (estágio, pleno, sênior, hardware...).
     // applyProfile escolhe o que aparece: pelo perfil de quem entrou ou pelo perfil padrão.
-    state.allJobs = data.jobs;
+    state.allJobs = data.jobs.filter((j) => j.tipo !== "freela");   // freelas ganham aba própria (ideia 8, etapa 2)
     state.meta = data.meta || {};
     state.now = state.sample ? new Date("2026-11-23T15:00:00-03:00") : new Date();
     applyProfile();

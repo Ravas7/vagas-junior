@@ -41,6 +41,8 @@ def for_profile(jobs: list[Job], perfil: dict) -> list[Job]:
     """Vagas que combinam com o perfil, com a nota e os motivos DESSE perfil, das melhores para as piores."""
     out = []
     for j in jobs:
+        if j.tipo == "freela":
+            continue                                 # freelas entram nos avisos na etapa 3 da ideia 8
         if j.tipo == "noticia":
             r = filters.evaluate_news_profile(j, perfil)
         else:

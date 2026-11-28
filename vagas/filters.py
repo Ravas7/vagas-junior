@@ -705,6 +705,51 @@ def _prepare(job: Job, cfg: dict) -> None:
             job.salary = extract_salary(f"{job.description} {job.snippet}")
 
 
+# ---------------------------------------------------------------- freelas
+# Projeto que não é de TI ou que parece golpe/ilegal. Some com freela que só cai em
+# "it-programming" por engano (trabalho de faculdade) e com pedido suspeito.
+# "tradução" NÃO entra: na categoria de TI quase sempre é parte do sistema ("ferramenta de tradução com IA").
+FREELA_BLOCK = [
+    # não é TI
+    "projeto extensionista", "extensionista", "tcc", "monografia", "trabalho academico", "trabalho de faculdade",
+    "artigo cientifico", "atividade academica",
+    # aposta, golpe, invasão
+    "bac bo", "aposta", "apostas", "cassino", "casino", "bet", "tigrinho", "fortune tiger", "aviator",
+    "roleta", "piramide financeira", "hackear", "invadir", "clonar whatsapp", "espionar",
+]
+NIVEL_FREELA_NOME = {"iniciante": "para iniciante", "intermediario": "nível intermediário", "especialista": "pede especialista"}
+
+
+def classify_freela(job: Job, cfg: dict) -> bool:
+    """Guarda o freela se for de TI e não parecer golpe. Nota só para ordenar a lista:
+    iniciante, poucas propostas, pagamento verificado e tecnologias citadas sobem."""
+    text = norm(f"{job.title} {job.description or job.snippet}")
+    block = FREELA_BLOCK + [norm(t) for t in cfg.get("freela_bloquear", [])]
+    hit = find_term(text, block)
+    job.padrao = False                        # não vai no e-mail de vagas nem na lista de vagas
+    if hit:
+        job.score, job.reasons = 0, [f"fora de TI ou suspeito: {hit}"]
+        return False
+    job.techs = find_techs(f"{job.title} {job.description or job.snippet}")
+    score, reasons = 50, ["freela de TI"]
+    if job.nivel_freela in NIVEL_FREELA_NOME:
+        reasons.append(NIVEL_FREELA_NOME[job.nivel_freela])
+        score += {"iniciante": 15, "intermediario": 5, "especialista": -10}[job.nivel_freela]
+    if 0 <= job.propostas <= 10:
+        score, reasons = score + 15, reasons + [f"só {job.propostas} propostas"]
+    elif 0 <= job.propostas <= 30:
+        score += 5
+    elif job.propostas > 80:
+        score -= 10
+    if job.pagamento_verificado:
+        score, reasons = score + 5, reasons + ["pagamento verificado"]
+    if job.techs:
+        score, reasons = score + 5 * min(len(job.techs), 3), reasons + ["cita " + ", ".join(job.techs[:3])]
+    job.score, job.reasons = max(score, 0), reasons
+    job.area = job.subarea = "dev"
+    return True
+
+
 def classify(job: Job, cfg: dict) -> bool:
     """Avalia a vaga para guardar no jobs.json. Devolve True se passou na BASE.
 
@@ -712,6 +757,8 @@ def classify(job: Job, cfg: dict) -> bool:
     (nível, subárea, tecnologias, anos...) e o resultado no perfil padrão
     (padrao, score, reasons), que é o que o e-mail usa.
     """
+    if job.tipo == "freela":
+        return classify_freela(job, cfg)
     _prepare(job, cfg)
     if job.tipo == "noticia":
         result = evaluate_news(job, cfg)

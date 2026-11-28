@@ -45,6 +45,8 @@ remote_bonus = 10
 max_age_days = 45                 # vaga publicada há mais tempo que isso é descartada (0 = sem limite)
 keep_days = 45                    # vaga não vista há tanto tempo sai do arquivo
 keep_days_news = 30               # notícias saem mais cedo
+keep_days_freela = 7              # freela fecha rápido: sai do arquivo depois de 7 dias sem aparecer
+freela_bloquear = []              # termos extras para descartar freela (além dos de filters.FREELA_BLOCK)
 news_min_score = 40
 big_bonus = 10                    # +10 de nota para empresas grandes e multinacionais
 related_enabled = true            # inclui dados, QA, DevOps, segurança... (exige o nível no título)
@@ -175,3 +177,20 @@ max_age_days = 30
 company_queries = true            # também busca por nome das grandes empresas
 group_size = 8                    # empresas por busca
 # queries = [...]                 # descomente para trocar as buscas padrão
+
+# ---------------------------------------------------------------- freelas (ideia 8)
+# Projetos freelancer de TI. Ficam no jobs.json com tipo "freela", saem em
+# keep_days_freela dias ([filter]) e ainda não aparecem no painel (etapa 2).
+# Os dois sites não têm API oficial: poucas páginas por coleta, com pausa entre elas.
+[sources.workana]
+enabled = true
+category = "it-programming"
+language = "pt"
+pages = 3                         # ~9 projetos por página
+delay = 1.5
+
+[sources.freelas99]
+enabled = true
+categorias = ["web-mobile-e-software"]
+pages = 2                         # ~10 projetos por página
+delay = 1.5

@@ -103,9 +103,11 @@ def run(cfg: dict, send_email: bool = True) -> int:
 
     existing = storage.load(path)
     jobs, new = storage.merge(existing, accepted, ok_sources, today,
-                                fcfg.get("keep_days", 45), fcfg.get("keep_days_news", 30))
+                                fcfg.get("keep_days", 45), fcfg.get("keep_days_news", 30),
+                                fcfg.get("keep_days_freela", 7))
     n_news = sum(1 for j in new if j.tipo == "noticia")
-    log(f"{len(new) - n_news} vagas novas e {n_news} notícias novas")
+    n_freela = sum(1 for j in new if j.tipo == "freela")
+    log(f"{len(new) - n_news - n_freela} vagas novas, {n_news} notícias novas e {n_freela} freelas novos")
 
     # --- e-mail: todas as vagas ativas ainda não avisadas ---
     pending = sorted(
@@ -169,12 +171,18 @@ def check(cfg: dict, only: str | None = None, show: int = 5) -> int:
     accepted, rejected = [], []
     in_base = 0
     for j in raw:
-        in_base += filters.classify(j, fcfg)
-        (accepted if j.padrao else rejected).append(j)
+        ok = filters.classify(j, fcfg)
+        in_base += ok
+        (accepted if j.padrao or (j.tipo == "freela" and ok) else rejected).append(j)
     log(f"\nTotal: {len(raw)} coletadas, {len(accepted)} aceitas no seu perfil, {len(rejected)} descartadas")
     log(f"O painel recebe {in_base} que passaram na base (para quem tem outro perfil).\n")
     log("Exemplos ACEITOS:")
     for j in sorted(accepted, key=lambda x: -x.score)[:show]:
+        if j.tipo == "freela":
+            bids = f"{j.propostas} propostas" if j.propostas >= 0 else "propostas: ?"
+            log(f"  [{j.score}] (freela) {j.title} | {j.orcamento or 'orçamento não informado'} | {bids} | "
+                f"{j.posted_at or '-'} | {', '.join(j.reasons)}")
+            continue
         log(f"  [{j.score}] ({j.tipo}/{j.area}) {j.title} | {j.company} | {j.location or '-'} | {', '.join(j.reasons)}")
     log("\nExemplos DESCARTADOS (para ajustar o filtro):")
     for j in rejected[:show]:

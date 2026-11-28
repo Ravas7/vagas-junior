@@ -28,7 +28,7 @@ class Job:
     last_seen: str = ""
     active: bool = True
     notified: bool = False
-    tipo: str = "vaga"           # vaga | noticia
+    tipo: str = "vaga"           # vaga | noticia | freela
     area: str = "dev"            # dev | correlata | suporte | hardware
     english: str = ""            # basico | intermediario | avancado | "" (não informado)
     abroad: bool = False         # vaga remota de empresa/local fora do Brasil
@@ -46,6 +46,15 @@ class Job:
     # --- resultado no perfil padrão (o do config.toml): e-mail e quem ainda não tem perfil ---
     padrao: bool = True          # vagas antigas (sem o campo) já tinham passado no perfil padrão
     ufs: list[str] | None = None # notícias: estados citados no título ([] = nenhum); None = não avaliado
+    # --- freelas (tipo == "freela"): projeto avulso, sem cargo, local nem salário ---
+    orcamento: str = ""          # como o site mostra: "USD 250 - 500", "Menos de USD 15 / hora"
+    orcamento_min: int = 0       # na moeda do site; 0 = não informado
+    orcamento_max: int = 0       # 0 = sem teto ou não informado
+    moeda: str = ""              # USD | BRL | ""
+    por_hora: bool = False
+    propostas: int = -1          # quantas propostas já recebeu; -1 = não informado
+    nivel_freela: str = ""       # iniciante | intermediario | especialista | "" (site não diz)
+    pagamento_verificado: bool = False
     # transitórios
     description: str = field(default="", repr=False)
     kind: str = field(default="", repr=False)   # tipo de contratação, ex.: estágio
@@ -57,6 +66,8 @@ class Job:
         """
         if self.tipo == "noticia":
             return "noticia|" + norm(self.title)
+        if self.tipo == "freela":
+            return "freela|" + self.id               # cada site tem o seu; título repete muito
         return "|".join(norm(x) for x in (self.title, self.company, self.location))
 
     def to_dict(self) -> dict:

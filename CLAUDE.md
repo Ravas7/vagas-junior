@@ -23,7 +23,7 @@ Quem usa: uma pessoa que trabalha com suporte, termina a faculdade no meio de 20
 config.toml        termos de busca, filtro, e-mail
 vagas/             coletor em Python 3.11+, só biblioteca padrão
   sources/         uma fonte por arquivo (gupy, adzuna, workday, smartrecruiters,
-                   greenhouse, lever, ashby, noticias)
+                   greenhouse, lever, ashby, noticias; freelas: workana, freelas99)
   filters.py       regras de júnior, idade da vaga, relevância, notícias
   storage.py       junta e atualiza docs/data/jobs.json
   emailer.py       monta e envia o e-mail
@@ -51,7 +51,7 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 197 testes, todos offline
+python -m pytest -q                  # 205 testes, todos offline
 node --test tests/store.test.js tests/perfil.test.js   # 28 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
@@ -100,7 +100,9 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - (feito) Painel instalável no celular (PWA): `sw.js` + `manifest.webmanifest`, item "Instalar o app" no menu da conta. Só registra em https (no localhost não, para não guardar cópia velha enquanto mexe).
    - (feito) Página "Seus dados" (`dados.html`) e "Apagar minha conta". Se mudar o que é guardado, atualize o texto dela.
 7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.
-8. Freelas de TI (depois do Telegram, com plano próprio): trazer projetos freelancer da área de TI para o painel. Falta decidir se ficam junto das vagas ou numa aba só deles, e testar quais sites dão para coletar (API pública ou endpoint aberto).
+8. Freelas de TI, em andamento, numa aba própria "Freelas". Plano em 3 etapas: 1 coleta, 2 aba no painel, 3 perfil e avisos.
+   - (feito) Etapa 1: fontes `workana` (JSON da página /jobs com o cabeçalho X-Requested-With) e `freelas99` (lê o HTML; traz o nível Iniciante/Intermediário/Especialista). Item com `tipo = "freela"`, filtro `classify_freela` (descarta o que não é TI e golpe, lista `FREELA_BLOCK` + `freela_bloquear` no config), sai do arquivo em `keep_days_freela` dias. O nome do cliente não é guardado (o jobs.json é público). O painel ainda esconde os freelas, e o e-mail e os avisos não os mandam.
+   - Freela não "encerra" quando some: o robô só lê as primeiras páginas.
 
 ## Firebase (ligado)
 

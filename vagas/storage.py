@@ -25,14 +25,16 @@ def load(path: str | Path) -> dict[str, Job]:
 
 
 def merge(existing: dict[str, Job], fetched: list[Job], ok_sources: set[str],
-          today: str, keep_days: int = 45, keep_days_news: int = 30) -> tuple[dict[str, Job], list[Job]]:
+          today: str, keep_days: int = 45, keep_days_news: int = 30,
+          keep_days_freela: int = 7) -> tuple[dict[str, Job], list[Job]]:
     """Junta o que foi coletado agora com o que já se conhecia.
 
     Devolve (todas as vagas, vagas novas). Regras:
     - mesmo id: atualiza dados, mantém first_seen e notified;
     - mesma vaga já vista em outra fonte (título+empresa+local): ignora;
     - vaga conhecida de uma fonte que respondeu agora e não apareceu: active=False;
-    - vagas não vistas há mais de keep_days dias: removidas.
+    - vagas não vistas há mais de keep_days dias: removidas (notícias e freelas têm prazo próprio).
+    Freela não "encerra" quando some: o robô só lê as primeiras páginas, e o projeto segue aberto.
     """
     jobs = dict(existing)
     by_key = {j.dedupe_key(): j.id for j in jobs.values()}
@@ -68,7 +70,8 @@ def merge(existing: dict[str, Job], fetched: list[Job], ok_sources: set[str],
 
     base = date.fromisoformat(today)
     limits = {"vaga": (base - timedelta(days=keep_days)).isoformat(),
-              "noticia": (base - timedelta(days=keep_days_news)).isoformat()}
+              "noticia": (base - timedelta(days=keep_days_news)).isoformat(),
+              "freela": (base - timedelta(days=keep_days_freela)).isoformat()}
     jobs = {i: j for i, j in jobs.items() if (j.last_seen or today) >= limits.get(j.tipo, limits["vaga"])}
     return jobs, new
 
