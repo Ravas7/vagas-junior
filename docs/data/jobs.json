@@ -1,6 +1,6 @@
 {
  "meta": {
-  "updated_at": "2026-11-27T23:57:13-03:00",
+  "updated_at": "2026-11-28T00:07:58-03:00",
   "sources": {
    "gupy": {
     "ok": true,
@@ -39,7 +39,7 @@
    },
    "noticias": {
     "ok": true,
-    "count": 215,
+    "count": 168,
     "error": ""
    }
   },
@@ -110,7 +110,7 @@
     "recente"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -148,7 +148,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -194,7 +194,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -239,7 +239,7 @@
     "região de Salvador"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -277,7 +277,7 @@
     "região de Salvador"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -315,7 +315,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -357,7 +357,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -404,7 +404,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -447,7 +447,7 @@
     "inglês intermediario"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -487,7 +487,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -532,7 +532,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -571,7 +571,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -610,7 +610,7 @@
     "recente"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "noticia",
@@ -651,7 +651,7 @@
     "recente"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "noticia",
@@ -733,7 +733,7 @@
     "recente"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "noticia",
@@ -774,7 +774,7 @@
     "região de Salvador"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -814,7 +814,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -852,7 +852,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -892,7 +892,7 @@
     "trainee/júnior"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -932,7 +932,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -972,7 +972,7 @@
     "trainee/júnior"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1086,7 +1086,7 @@
     "grande empresa"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1162,7 +1162,7 @@
     "recente"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1200,7 +1200,7 @@
     "remoto"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "vaga",
@@ -1276,7 +1276,7 @@
     "recente"
    ],
    "first_seen": "2026-11-24",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1316,7 +1316,7 @@
     "recente"
    ],
    "first_seen": "2026-11-24",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1394,7 +1394,7 @@
     "recente"
    ],
    "first_seen": "2026-11-24",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1510,7 +1510,7 @@
     "recente"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1664,7 +1664,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1742,7 +1742,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1781,7 +1781,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1820,7 +1820,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -1859,7 +1859,7 @@
     "tecnologia"
    ],
    "first_seen": "2026-11-23",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": true,
    "tipo": "noticia",
@@ -2499,7 +2499,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2541,7 +2541,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2583,7 +2583,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2626,7 +2626,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2668,7 +2668,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2713,7 +2713,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2754,7 +2754,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2797,7 +2797,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2840,7 +2840,7 @@
     "nota abaixo do mínimo"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2881,7 +2881,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2922,7 +2922,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -2957,7 +2957,7 @@
    "source": "adzuna",
    "title": "Auxiliar Técnico de Informática (Sistemas)",
    "company": "R2T TELECOMUNICAÇÕES",
-   "url": "https://www.adzuna.com.br/land/ad/5981056799?se=nBe7hdfq8RGTKtsZlPx8Mw&utm_medium=api&utm_source=dc5a4145&v=F52ADE0E22AFB96E30B8C12C42E224CF865E178B",
+   "url": "https://www.adzuna.com.br/land/ad/5981056799?se=hBunBtnq8RG9S4jfcVf4Cw&utm_medium=api&utm_source=dc5a4145&v=F52ADE0E22AFB96E30B8C12C42E224CF865E178B",
    "location": "Salvador, Bahia",
    "uf": "BA",
    "workplace": "",
@@ -2968,7 +2968,7 @@
     "hardware e assistência técnica fora do perfil"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3004,7 +3004,7 @@
     "hardware e assistência técnica fora do perfil"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3040,7 +3040,7 @@
     "hardware e assistência técnica fora do perfil"
    ],
    "first_seen": "2026-11-27",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3078,7 +3078,7 @@
     "fora de Salvador e região (Irecê, BA)"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3117,7 +3117,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3158,7 +3158,7 @@
     "hardware e assistência técnica fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3196,7 +3196,7 @@
     "hardware e assistência técnica fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3234,7 +3234,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3272,7 +3272,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3310,7 +3310,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3348,7 +3348,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3384,7 +3384,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3420,7 +3420,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3456,7 +3456,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3494,7 +3494,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3530,7 +3530,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-26",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3566,7 +3566,7 @@
     "nível estágio fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3602,7 +3602,7 @@
     "nível estágio fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3638,7 +3638,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3674,7 +3674,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3710,7 +3710,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3748,7 +3748,7 @@
     "exige inglês avancado (limite: intermediario)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3786,7 +3786,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3826,7 +3826,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3864,7 +3864,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3904,7 +3904,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3944,7 +3944,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -3982,7 +3982,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4020,7 +4020,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4059,7 +4059,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4101,7 +4101,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4143,7 +4143,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4185,7 +4185,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4229,7 +4229,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4274,7 +4274,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4317,7 +4317,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4357,7 +4357,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4400,7 +4400,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4441,7 +4441,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4485,7 +4485,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4525,7 +4525,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4565,7 +4565,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4606,7 +4606,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4650,7 +4650,7 @@
     "nível estágio fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4689,7 +4689,7 @@
     "nível estágio fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4727,7 +4727,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4772,7 +4772,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4813,7 +4813,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4859,7 +4859,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4898,7 +4898,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4938,7 +4938,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -4980,7 +4980,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5024,7 +5024,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5064,7 +5064,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5107,7 +5107,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5152,7 +5152,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5193,7 +5193,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5229,7 +5229,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5270,7 +5270,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5313,7 +5313,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5356,7 +5356,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5394,7 +5394,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5433,7 +5433,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5473,7 +5473,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5509,7 +5509,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5547,7 +5547,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5586,7 +5586,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5626,7 +5626,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5665,7 +5665,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5704,7 +5704,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5744,7 +5744,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5784,7 +5784,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5825,7 +5825,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5865,7 +5865,7 @@
     "exige inglês avancado (limite: intermediario)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5903,7 +5903,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5941,7 +5941,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -5977,7 +5977,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6015,7 +6015,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6051,7 +6051,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6092,7 +6092,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6132,7 +6132,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6170,7 +6170,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6208,7 +6208,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6246,7 +6246,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6287,7 +6287,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6326,7 +6326,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6364,7 +6364,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6405,7 +6405,7 @@
     "nível pleno fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6441,7 +6441,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6477,7 +6477,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6513,7 +6513,7 @@
     "hardware e assistência técnica fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6551,7 +6551,7 @@
     "fora de Salvador e região (Campinas, SP)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6587,7 +6587,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6623,7 +6623,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6659,7 +6659,7 @@
     "fora de Salvador e região (Campinas, SP)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6695,7 +6695,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6731,7 +6731,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6767,7 +6767,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6803,7 +6803,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6839,7 +6839,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6875,7 +6875,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6911,7 +6911,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6947,7 +6947,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -6985,7 +6985,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7023,7 +7023,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7061,7 +7061,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7100,7 +7100,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7136,7 +7136,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7172,7 +7172,7 @@
     "suporte sem salário informado (mínimo R$ 3200)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7208,7 +7208,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7244,7 +7244,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7280,7 +7280,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7316,7 +7316,7 @@
     "nível estágio fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7352,7 +7352,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7390,7 +7390,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7430,7 +7430,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7466,7 +7466,7 @@
     "nível sênior ou acima fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7502,7 +7502,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7540,7 +7540,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7578,7 +7578,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7614,7 +7614,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7650,7 +7650,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7686,7 +7686,7 @@
     "fora de Salvador e região (local não informado)"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
@@ -7722,7 +7722,7 @@
     "nível estágio fora do perfil"
    ],
    "first_seen": "2026-11-25",
-   "last_seen": "2026-11-27",
+   "last_seen": "2026-11-28",
    "active": true,
    "notified": false,
    "tipo": "vaga",
