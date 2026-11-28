@@ -79,6 +79,35 @@ def profiles(padrao: dict) -> dict[str, dict]:
     }
 
 
+def freela_corpus() -> list[Job]:
+    """Freelas com todas as combinações que o filtro do perfil olha."""
+    out = []
+    combos = itertools.product(["iniciante", "intermediario", "especialista", ""], [-1, 3, 25, 120],
+                               [(0, 0, False), (0, 50, False), (250, 500, False), (0, 15, True), (3000, 0, False)],
+                               [[], ["Python"], ["PHP", "SQL"]])
+    for i, (nivel, bids, (lo, hi, hora), techs) in enumerate(combos):
+        j = Job(id=f"f:{i}", source="workana", title=f"Projeto {i}", company="", url="u", tipo="freela",
+                nivel_freela=nivel, propostas=bids, orcamento_min=lo, orcamento_max=hi, por_hora=hora,
+                description=" ".join(techs))
+        filters.classify(j, {})
+        out.append(j)
+    return out
+
+
+def freela_profiles(padrao: dict) -> dict[str, dict]:
+    p = lambda **fr: {**padrao, "tecnologias": ["Python", "SQL"], "freelas": fr}
+    return {
+        "sem_campo": {**padrao},
+        "nao_quer": p(ver=False),
+        "iniciante": p(nivel="iniciante"),
+        "ate_intermediario": p(nivel="intermediario", propostas_max=30),
+        "orcamento_250": p(orcamento_min=250),
+        "so_techs": p(so_minhas_techs=True, avisar=True),
+        "tudo": p(nivel="intermediario", orcamento_min=100, propostas_max=10, so_minhas_techs=True),
+        "valores_estranhos": p(nivel="mestre", orcamento_min="abc", propostas_max=-5, ver="sim"),
+    }
+
+
 def build() -> str:
     cfg = load_config(str(ROOT / "config.toml"))["filter"]
     cfg = {**cfg, "max_age_days": 0}                # sem data: o arquivo não muda com o dia
@@ -101,7 +130,15 @@ def build() -> str:
               "nivel", "english", "techs", "years", "junior_title", "junior_desc", "pouca_exp"]
     noticia = ["ufs", "score", "reasons"]
     vagas = [{k: j.to_dict()[k] for k in usados + (noticia if j.tipo == "noticia" else [])} for j in jobs]
-    data = {"vagas": vagas, "perfis": perfis, "esperado": esperado}
+    frees = freela_corpus()
+    fperfis = freela_profiles(padrao)
+    fesperado = {nome: [[r.accepted, r.score, r.reasons] for r in (filters.evaluate_freela(j, perfil) for j in frees)]
+                 for nome, perfil in fperfis.items()}
+    fcampos = ["id", "tipo", "nivel_freela", "propostas", "orcamento_min", "orcamento_max", "por_hora", "techs",
+               "score", "reasons"]
+    data = {"vagas": vagas, "perfis": perfis, "esperado": esperado,
+            "freelas": {"itens": [{k: j.to_dict()[k] for k in fcampos} for j in frees],
+                        "perfis": fperfis, "esperado": fesperado}}
     return json.dumps(data, ensure_ascii=False, separators=(",", ":")) + "\n"
 
 

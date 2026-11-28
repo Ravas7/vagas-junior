@@ -134,3 +134,58 @@ def test_coleta_guarda_freela_mas_nao_manda_no_email(monkeypatch, tmp_path):
     assert saved["workana:criar-api-em-python-para-loja"].tipo == "freela"
     html = sent[0].get_body(("html",)).get_content()
     assert "Python Júnior" in html and "Criar API" not in html
+
+
+# ---------------------------------------------------------------- etapa 3: perfil e avisos
+from vagas import avisos, telegram  # noqa: E402
+from vagas.firebase import Recipient  # noqa: E402
+
+PADRAO = filters.profile_from_config({"location_filter": True, "state": "BA"})
+
+
+def freelas_do_dia(n=7):
+    out = []
+    for i in range(n):
+        j = Job(id=f"workana:p{i}", source="workana", title=f"Site em PHP número {i}", company="", url=f"https://w/{i}",
+                tipo="freela", nivel_freela="iniciante" if i % 2 else "especialista", propostas=i * 10,
+                orcamento="USD 100 - 250", orcamento_min=100, orcamento_max=250, description="PHP e SQL",
+                first_seen="2026-11-29")
+        filters.classify(j, {})
+        out.append(j)
+    return out
+
+
+def test_perfil_de_freela_filtra_nivel_propostas_e_orcamento():
+    f = Job(id="w:1", source="workana", title="x", company="", url="u", tipo="freela", nivel_freela="especialista",
+            propostas=40, orcamento_min=0, orcamento_max=50, techs=["PHP"], score=50, reasons=["freela de TI"])
+    ok = lambda **fr: filters.evaluate_freela(f, {"tecnologias": ["PHP"], "freelas": fr}).accepted  # noqa: E731
+    assert ok() and not ok(ver=False) and not ok(nivel="intermediario") and not ok(propostas_max=30)
+    assert not ok(orcamento_min=100)
+    r = filters.evaluate_freela(f, {"tecnologias": ["PHP"]})
+    assert r.score == 60 and r.reasons[-1] == "sua tecnologia: PHP"
+    sem_info = Job(id="w:2", source="freelas99", title="x", company="", url="u", tipo="freela")
+    assert filters.evaluate_freela(sem_info, {"freelas": {"orcamento_min": 500, "propostas_max": 5}}).accepted
+
+
+def test_aviso_so_leva_freela_para_quem_ligou_e_no_maximo_5():
+    pool = freelas_do_dia()
+    ids = {j.id for j in pool}
+    nao = Recipient("u1", "a@x.com", "Ana", {**PADRAO})
+    sim = Recipient("u2", "b@x.com", "Bia", {**PADRAO, "freelas": {"avisar": True}})
+    plans = avisos.plan([nao, sim], pool, ids, "2026-11-29", evening=False)
+    assert [pl.person.uid for pl in plans] == ["u2"]           # só freelas novos: Ana não recebe nada
+    assert len(plans[0].freelas) == 5 and plans[0].jobs == []
+    so_ini = Recipient("u3", "c@x.com", "Caio", {**PADRAO, "freelas": {"avisar": True, "nivel": "iniciante"}})
+    [pl] = avisos.plan([so_ini], pool, ids, "2026-11-29", evening=False)
+    assert all(j.nivel_freela == "iniciante" for j in pl.freelas)
+
+
+def test_email_e_telegram_tem_secao_de_freelas():
+    frees = freelas_do_dia(2)
+    msg = emailer.build_message([], {}, "https://painel", "r@x.com", "b@x.com", "29/11", greeting="Olá, Bia!",
+                                freelas=frees)
+    html = msg.get_body(("html",)).get_content()
+    assert "Freelas novos" in html and "Site em PHP número 0" in html and "USD 100 - 250" in html
+    assert "2 freelas novos" in msg["Subject"]
+    texts = telegram.messages([], "Olá, Bia!", "https://painel", freelas=frees)
+    assert "<b>Freelas novos</b>" in texts[0] and "Workana · USD 100 - 250" in texts[0]

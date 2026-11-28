@@ -112,3 +112,23 @@ test("aviso de vagas: padrão ligado, e-mail, a cada coleta; valores estranhos v
     { ativo: true, canal: "email", frequencia: "coleta", telegram_codigo: "" });
   assert.equal(P.normalize({ aviso: { canal: "telegram", telegram_codigo: "Ab3dEf7hJk2m" } }).aviso.telegram_codigo, "Ab3dEf7hJk2m");
 });
+
+test("paridade dos freelas: o JS decide igual ao Python (evaluateFreela = evaluate_freela)", () => {
+  const fx = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures", "paridade.json"), "utf8")).freelas;
+  let checked = 0;
+  for (const [nome, perfil] of Object.entries(fx.perfis)) {
+    fx.itens.forEach((item, i) => {
+      const got = P.evaluateFreela(item, perfil);
+      assert.deepEqual([got.accepted, got.score, got.reasons], fx.esperado[nome][i], `perfil "${nome}", freela ${item.id}`);
+      checked++;
+    });
+  }
+  assert.ok(checked > 1000, `poucas comparações: ${checked}`);
+});
+
+test("freelas no perfil: padrão mostra tudo e não avisa; valores estranhos voltam ao padrão", () => {
+  assert.deepEqual(P.normalize({}).freelas,
+    { ver: true, nivel: "", orcamento_min: 0, propostas_max: 0, so_minhas_techs: false, avisar: false });
+  assert.deepEqual(P.normalize({ freelas: { ver: false, nivel: "mestre", orcamento_min: "250", avisar: true } }).freelas,
+    { ver: false, nivel: "", orcamento_min: 250, propostas_max: 0, so_minhas_techs: false, avisar: true });
+});

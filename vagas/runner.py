@@ -259,9 +259,10 @@ def send_avisos(plans: list, ecfg: dict, cfg: dict, send_email: bool, now: datet
     tok = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     for pl in plans:
         p = pl.person
+        what = "vagas e freelas" if pl.jobs and pl.freelas else "freelas" if pl.freelas else "vagas"
+        hello = avisos.greeting(p, pl.kind, what)
         if pl.channel == "telegram":
-            texts = telegram.messages(pl.jobs, avisos.greeting(p, pl.kind), dashboard_url(cfg),
-                                      ecfg.get("max_per_email", 40))
+            texts = telegram.messages(pl.jobs, hello, dashboard_url(cfg), ecfg.get("max_per_email", 40), pl.freelas)
             if not send_email:
                 name = out / f"aviso_{_slug(p.nome or p.email)}_telegram.txt"
                 name.write_text("\n\n----- (próxima mensagem) -----\n\n".join(texts), encoding="utf-8")
@@ -275,8 +276,8 @@ def send_avisos(plans: list, ecfg: dict, cfg: dict, send_email: bool, now: datet
             except SourceError as exc:
                 log(f"ERRO no Telegram de {p.nome or p.email} ({exc}); vai por e-mail.")
         msg = emailer.build_message(pl.jobs, ecfg, dashboard_url(cfg), user or "voce@exemplo.com", p.email, day,
-                                    greeting=avisos.greeting(p, pl.kind), footer=avisos.FOOTER)
-        label = f"{p.nome or p.email} ({len(pl.jobs)} itens)"
+                                    greeting=hello, footer=avisos.FOOTER, freelas=pl.freelas)
+        label = f"{p.nome or p.email} ({len(pl.jobs) + len(pl.freelas)} itens)"
         if not send_email:
             name = out / f"aviso_{_slug(p.nome or p.email)}.html"
             name.write_text(msg.get_body(("html",)).get_content(), encoding="utf-8")

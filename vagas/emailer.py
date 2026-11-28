@@ -14,8 +14,16 @@ WORKPLACE_LABEL = {"remoto": "Remoto", "hibrido": "Híbrido", "presencial": "Pre
 SOURCE_LABEL = {
     "gupy": "Gupy", "adzuna": "Adzuna", "greenhouse": "Greenhouse", "lever": "Lever",
     "ashby": "Ashby", "smartrecruiters": "SmartRecruiters", "workday": "Workday",
-    "noticias": "Notícia",
+    "noticias": "Notícia", "workana": "Workana", "freelas99": "99Freelas",
 }
+NIVEL_FREELA = {"iniciante": "para iniciante", "intermediario": "nível intermediário", "especialista": "pede especialista"}
+
+
+def freela_line(j: Job) -> str:
+    """'Workana · USD 250 - 500 · 7 propostas · para iniciante'"""
+    bids = "" if j.propostas < 0 else ("1 proposta" if j.propostas == 1 else f"{j.propostas} propostas")
+    return " · ".join(x for x in (SOURCE_LABEL.get(j.source, j.source), j.orcamento, bids,
+                                  NIVEL_FREELA.get(j.nivel_freela, "")) if x)
 
 
 EN_LABEL = {"": "não informado", "basico": "básico", "intermediario": "intermediário", "avancado": "avançado"}
@@ -35,8 +43,10 @@ def _count(n: int, one: str, many: str) -> str:
 
 def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
                   sender: str, recipient: str, today_label: str,
-                  greeting: str = "", footer: str = "") -> EmailMessage:
-    """greeting/footer: usados no aviso por pessoa ("Olá, Ana" / "Para parar, use Meu perfil")."""
+                  greeting: str = "", footer: str = "", freelas: list[Job] | None = None) -> EmailMessage:
+    """greeting/footer: usados no aviso por pessoa ("Olá, Ana" / "Para parar, use Meu perfil").
+    freelas: seção "Freelas novos" (só no aviso de quem ligou essa opção)."""
+    freelas = freelas or []
     vagas_all = [j for j in jobs if j.tipo != "noticia"]
     news_all = [j for j in jobs if j.tipo == "noticia"]
     vagas = vagas_all[: cfg.get("max_per_email", 40)]
@@ -48,6 +58,8 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
         pieces.append(_count(len(vagas_all), "vaga nova", "vagas novas"))
     if news_all:
         pieces.append(_count(len(news_all), "notícia de seleção", "notícias de seleção"))
+    if freelas:
+        pieces.append(_count(len(freelas), "freela novo", "freelas novos"))
     headline = " e ".join(pieces) or "Sem novidades"
 
     msg = EmailMessage()
@@ -64,6 +76,10 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
         lines += ["Processos seletivos nas notícias:", ""]
         for j in news:
             lines += [j.title, f"{j.company} | {j.location}", j.url, ""]
+    if freelas:
+        lines += ["Freelas novos:", ""]
+        for j in freelas:
+            lines += [j.title, freela_line(j), j.url, ""]
     if hidden > 0:
         lines.append(f"+ {hidden} no painel.")
     if dashboard_url:
@@ -102,6 +118,14 @@ def build_message(jobs: list[Job], cfg: dict, dashboard_url: str,
     if news:
         body += ('<tr><td style="padding:22px 0 0"><h2 style="margin:0;font-size:17px;color:#0F1B2D">'
                  'Processos seletivos nas notícias</h2></td></tr>' + "".join(row(j) for j in news))
+    if freelas:
+        body += ('<tr><td style="padding:22px 0 0"><h2 style="margin:0;font-size:17px;color:#0F1B2D">'
+                 'Freelas novos</h2></td></tr>' + "".join(
+                     f'''
+<tr><td style="padding:14px 0;border-bottom:1px solid #E3E8EE">
+  <a href="{escape(j.url, quote=True)}" style="font-size:16px;font-weight:600;color:#037A46;text-decoration:none">{escape(j.title)}</a><br>
+  <span style="font-size:13px;color:#5B6B7B">{escape(freela_line(j))}</span>
+</td></tr>''' for j in freelas))
     more = f'<p style="font-size:14px;color:#5B6B7B">Mais {hidden} no painel.</p>' if hidden > 0 else ""
     button = (f'<p style="margin:22px 0 0"><a href="{escape(dashboard_url, quote=True)}" '
               'style="background:#00C060;color:#03140B;font-weight:700;padding:10px 16px;border-radius:6px;'

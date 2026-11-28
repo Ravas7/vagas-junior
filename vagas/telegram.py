@@ -143,7 +143,13 @@ def _line(j: Job) -> str:
     return f'<a href="{escape(j.url, quote=True)}">{escape(j.title)}</a>\n{escape(second)}'
 
 
-def messages(jobs: list[Job], greeting: str, dashboard_url: str, max_items: int = 40) -> list[str]:
+def _freela(j: Job) -> str:
+    from .emailer import freela_line
+    return f'<a href="{escape(j.url, quote=True)}">{escape(j.title)}</a>\n{escape(freela_line(j))}'
+
+
+def messages(jobs: list[Job], greeting: str, dashboard_url: str, max_items: int = 40,
+             freelas: list[Job] | None = None) -> list[str]:
     """O aviso em uma ou mais mensagens (cada uma abaixo do limite do Telegram)."""
     vagas = [j for j in jobs if j.tipo != "noticia"][:max_items]
     news = [j for j in jobs if j.tipo == "noticia"][:10]
@@ -152,6 +158,9 @@ def messages(jobs: list[Job], greeting: str, dashboard_url: str, max_items: int 
     if news:
         blocks.append("<b>Processos seletivos nas notícias</b>")
         blocks += [_line(j) for j in news]
+    if freelas:
+        blocks.append("<b>Freelas novos</b>")
+        blocks += [_freela(j) for j in freelas]
     hidden = len(jobs) - len(vagas) - len(news)
     tail = (f"Mais {hidden} no painel. " if hidden > 0 else "") + (
         f'<a href="{escape(dashboard_url, quote=True)}">Abrir o painel</a>' if dashboard_url else "")

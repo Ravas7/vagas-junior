@@ -23,6 +23,20 @@
   const CANAIS = ["email", "telegram"];
   const FREQUENCIAS = ["coleta", "diario"];
 
+  /* Freelas (campo "freelas"): mesmas chaves e regras de freela_prefs em vagas/filters.py */
+  function freelas(f) {
+    f = f && typeof f === "object" ? f : {};
+    const num = (v) => { const n = parseInt(v, 10); return Number.isFinite(n) && n > 0 ? n : 0; };
+    return {
+      ver: f.ver !== false,
+      nivel: ["iniciante", "intermediario"].includes(f.nivel) ? f.nivel : "",
+      orcamento_min: num(f.orcamento_min),
+      propostas_max: num(f.propostas_max),
+      so_minhas_techs: f.so_minhas_techs === true,
+      avisar: f.avisar === true,
+    };
+  }
+
   /* Aviso de vagas novas (lido pelo robô em vagas/avisos.py, prefs). Padrão: ligado, e-mail, a cada coleta. */
   function aviso(a) {
     a = a && typeof a === "object" ? a : {};
@@ -71,6 +85,7 @@
       bonus_tecnologia: int(p.bonus_tecnologia, 10),
       nota_minima: int(p.nota_minima, 40),
       aviso: aviso(p.aviso),
+      freelas: freelas(p.freelas),
     };
   }
 
@@ -233,7 +248,28 @@
     return { accepted, score, reasons, comuns };
   }
 
-  return { UFS, NIVEIS, SUBAREAS, CORRELATAS, normalize, validate, summary, evaluate, norm };
+  /* O freela combina com o perfil? A mesma conta de evaluate_freela (vagas/filters.py).
+   * Orçamento ou propostas que o site não informa não tiram o projeto. */
+  function evaluateFreela(job, p) {
+    const fp = freelas(p && p.freelas);
+    const no = (why) => ({ accepted: false, score: 0, reasons: [why], comuns: [] });
+    if (!fp.ver) return no("você não quer ver freelas");
+    if (fp.nivel === "iniciante" && job.nivel_freela !== "iniciante") return no("não é para iniciante");
+    if (fp.nivel === "intermediario" && job.nivel_freela === "especialista") return no("pede especialista");
+    const top = Math.max(job.orcamento_min || 0, job.orcamento_max || 0);
+    if (fp.orcamento_min && top && !job.por_hora && top < fp.orcamento_min) return no(`orçamento abaixo de USD ${fp.orcamento_min}`);
+    const bids = job.propostas == null ? -1 : job.propostas;
+    if (fp.propostas_max && bids > fp.propostas_max) return no(`mais de ${fp.propostas_max} propostas`);
+    const minhas = new Set((p && p.tecnologias) || []);
+    const comuns = (job.techs || []).filter((t) => minhas.has(t));
+    if (fp.so_minhas_techs && minhas.size && !comuns.length) return no("não cita suas tecnologias");
+    const reasons = [...(job.reasons || [])];
+    let score = job.score || 0;
+    if (comuns.length) { score += 10; reasons.push("sua tecnologia: " + comuns.join(", ")); }
+    return { accepted: true, score, reasons, comuns };
+  }
+
+  return { UFS, NIVEIS, SUBAREAS, CORRELATAS, normalize, validate, summary, evaluate, evaluateFreela, freelas, norm };
 });
 
 /* ---------------------------------------------------------------- janela (só navegador) */
@@ -385,6 +421,27 @@
         check("so_minhas_techs", "Mostrar só vagas que citam uma das minhas tecnologias", p.so_minhas_techs,
           "Cuidado: muitas vagas júnior não citam a tecnologia.")),
 
+      h("fieldset", { class: "pf-sec" }, h("legend", {}, "Freelas"),
+        check("fr_ver", "Mostrar freelas (projetos avulsos) no painel", p.freelas.ver,
+          "Projetos da Workana e do 99Freelas, numa aba própria."),
+        h("div", { "data-show": "freelas" },
+          h("label", { class: "pf-inline" }, h("span", {}, "Nível pedido"),
+            h("select", { name: "fr_nivel" },
+              [["", "Todos"], ["iniciante", "Só para iniciante"], ["intermediario", "Até intermediário"]]
+                .map(([v, t]) => h("option", { value: v, selected: p.freelas.nivel === v }, t)))),
+          h("label", { class: "pf-inline" }, h("span", {}, "Orçamento mínimo"),
+            h("select", { name: "fr_orcamento" },
+              [[0, "Qualquer um"], [50, "USD 50"], [100, "USD 100"], [250, "USD 250"], [500, "USD 500"]]
+                .map(([v, t]) => h("option", { value: v, selected: p.freelas.orcamento_min === v }, t)))),
+          h("label", { class: "pf-inline" }, h("span", {}, "Concorrência"),
+            h("select", { name: "fr_propostas" },
+              [[0, "Qualquer número de propostas"], [10, "Até 10 propostas"], [30, "Até 30 propostas"], [50, "Até 50 propostas"]]
+                .map(([v, t]) => h("option", { value: v, selected: p.freelas.propostas_max === v }, t)))),
+          h("p", { class: "pf-hint" }, "Projetos que não informam orçamento ou propostas continuam aparecendo."),
+          check("fr_techs", "Só os que citam minhas tecnologias", p.freelas.so_minhas_techs),
+          check("fr_avisar", "Me avisar de freelas novos", p.freelas.avisar,
+            "Até 5 por aviso, junto com as vagas, pelo mesmo canal escolhido abaixo."))),
+
       h("fieldset", { class: "pf-sec" }, h("legend", {}, "Avisos de vagas novas"),
         check("aviso_ativo", "Me avisar quando chegar vaga que combina comigo", p.aviso.ativo,
           "O robô procura vagas duas vezes por dia. Se nada combinar, você não recebe nada."),
@@ -459,6 +516,14 @@
         frequencia: (f.querySelector('input[name="aviso_frequencia"]:checked') || {}).value || "coleta",
         telegram_codigo: f.elements.aviso_codigo ? f.elements.aviso_codigo.value : (P.current && P.current.aviso || {}).telegram_codigo || "",
       },
+      freelas: {
+        ver: on("fr_ver"),
+        nivel: f.elements.fr_nivel.value,
+        orcamento_min: Number(f.elements.fr_orcamento.value) || 0,
+        propostas_max: Number(f.elements.fr_propostas.value) || 0,
+        so_minhas_techs: on("fr_techs"),
+        avisar: on("fr_avisar"),
+      },
     };
   }
 
@@ -469,6 +534,7 @@
     showIf('[data-show="presencial"]', f.elements.presencial.checked);
     showIf('[data-show="exterior"]', f.elements.exterior.checked);
     showIf('[data-show="aviso"]', f.elements.aviso_ativo.checked);
+    showIf('[data-show="freelas"]', f.elements.fr_ver.checked);
     showIf('[data-show="telegram"]', !!f.querySelector('input[name="aviso_canal"][value="telegram"]:checked:not(:disabled)'));
     showIf('[data-show="area-suporte"]', !!f.querySelector('input[name="areas"][value="suporte"]:checked'));
     showIf('[data-show-uf="BA"]', f.elements.estado.value === "BA");

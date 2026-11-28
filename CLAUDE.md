@@ -51,8 +51,8 @@ tests/             pytest (Python) e node:test (store.js, perfil.js)
 ## Comandos
 
 ```bash
-python -m pytest -q                  # 205 testes, todos offline
-node --test tests/store.test.js tests/perfil.test.js   # 28 testes do quadro e do perfil (Node 20+)
+python -m pytest -q                  # 208 testes, todos offline
+node --test tests/store.test.js tests/perfil.test.js   # 30 testes do quadro e do perfil (Node 20+)
 python tests/make_paridade.py        # regrava o teste de paridade Python x JS do filtro do perfil
 python -m vagas check                # testa as fontes sem salvar nada
 python -m vagas check --source gupy  # uma fonte só
@@ -75,7 +75,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
 - Fontes de vagas usam endpoints públicos sem documentação oficial (principalmente a Gupy, `portal.gupy.io/api/job-search/jobs`). Se uma fonte quebrar, rode `check --source nome` e leia o erro antes de mudar qualquer coisa.
 - Textos do painel e do e-mail em português, frases curtas, sem jargão.
 - Visual: cores em variáveis no topo de `docs/style.css`. `--neon` é o verde de preenchimento (botões, logo), `--accent` o verde de texto e borda (mais escuro no tema claro, para dar leitura), `--glow-c` a cor do brilho. Logo é o pin com R desenhado direto no HTML (classe `pin`), para seguir o tema. Tema fica no menu da conta. No celular (até 860px) as abas viram a barra de navegação de baixo (`bottom-nav`).
-- O filtro do perfil existe em Python (`evaluate_profile` em `filters.py`) e em JS (`evaluate` em `docs/perfil.js`). Mudou um, mude o outro e rode `python tests/make_paridade.py`; o teste de paridade compara os dois.
+- O filtro do perfil existe em Python (`evaluate_profile` e `evaluate_freela` em `filters.py`) e em JS (`evaluate` e `evaluateFreela` em `docs/perfil.js`). Mudou um, mude o outro e rode `python tests/make_paridade.py`; o teste de paridade compara os dois.
 
 ## Quadro de candidaturas
 
@@ -100,11 +100,11 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - (feito) Painel instalável no celular (PWA): `sw.js` + `manifest.webmanifest`, item "Instalar o app" no menu da conta. Só registra em https (no localhost não, para não guardar cópia velha enquanto mexe).
    - (feito) Página "Seus dados" (`dados.html`) e "Apagar minha conta". Se mudar o que é guardado, atualize o texto dela.
 7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.
-8. Freelas de TI, em andamento, numa aba própria "Freelas". Plano em 3 etapas: 1 coleta, 2 aba no painel, 3 perfil e avisos.
+8. (concluída em 28/11/2026) Freelas de TI, numa aba própria "Freelas". Plano em 3 etapas: 1 coleta, 2 aba no painel, 3 perfil e avisos.
    - (feito) Etapa 1: fontes `workana` (JSON da página /jobs com o cabeçalho X-Requested-With) e `freelas99` (lê o HTML; traz o nível Iniciante/Intermediário/Especialista). Item com `tipo = "freela"`, filtro `classify_freela` (descarta o que não é TI e golpe, lista `FREELA_BLOCK` + `freela_bloquear` no config), sai do arquivo em `keep_days_freela` dias. O nome do cliente não é guardado (o jobs.json é público). O e-mail e os avisos ainda não mandam freelas.
    - Freela não "encerra" quando some: o robô só lê as primeiras páginas.
    - (feito) Etapa 2: aba "Freelas" (`data-tab="freelas"`, também na barra do celular), cartão próprio (`freelaRow` em app.js), filtros só da aba (classes `only-freelas`/`only-vagas` em index.html, modo `.filters.freela-mode`), e a aba Salvas junta vagas e freelas.
-   - Falta a Etapa 3: perfil e avisos.
+   - (feito) Etapa 3: campo `freelas` no perfil (ver, nivel, orcamento_min, propostas_max, so_minhas_techs, avisar). O filtro existe em Python (`freela_prefs`/`evaluate_freela`) e em JS (`freelas`/`evaluateFreela` em perfil.js), e a paridade fica em `paridade.json` → `freelas`. Quem liga "avisar" recebe até 5 freelas novos (`avisos.MAX_FREELAS`) no e-mail ou no Telegram. Desligar "ver" esconde a aba.
 
 ## Firebase (ligado)
 

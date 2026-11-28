@@ -1043,3 +1043,5 @@ a.acct-item { color: inherit; text-decoration: none; }
 
 /* botão que é link ("Ver no site" do freela) */
 a.btn { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
+.bottom-nav.no-freelas { grid-template-columns: repeat(4, 1fr); }
+.bottom-nav [hidden] { display: none; }

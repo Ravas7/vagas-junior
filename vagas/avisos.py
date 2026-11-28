@@ -12,13 +12,14 @@ Quem escolheu Telegram e ainda não ligou a conversa (ou se o bot estiver fora) 
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 
 from . import filters
 from .firebase import Recipient
 from .models import Job
 
+MAX_FREELAS = 5                     # freelas por aviso: só os melhores, para não lotar
 FOOTER = "Você recebe este aviso porque usa o Ragas. Para parar ou mudar o que recebe, abra o painel e use Meu perfil."
 
 
@@ -52,6 +53,20 @@ def for_profile(jobs: list[Job], perfil: dict) -> list[Job]:
     return sorted(out, key=lambda j: (j.tipo == "noticia", -j.score, j.first_seen))
 
 
+def freelas_for(jobs: list[Job], perfil: dict) -> list[Job]:
+    """Freelas que combinam com o perfil (só para quem ligou "me avisar de freelas"), os melhores primeiro."""
+    if not filters.freela_prefs(perfil)["avisar"]:
+        return []
+    out = []
+    for j in jobs:
+        if j.tipo != "freela":
+            continue
+        r = filters.evaluate_freela(j, perfil)
+        if r.accepted:
+            out.append(replace(j, score=r.score, reasons=r.reasons))
+    return sorted(out, key=lambda j: (-j.score, j.first_seen))[:MAX_FREELAS]
+
+
 @dataclass
 class Plan:
     person: Recipient
@@ -59,6 +74,7 @@ class Plan:
     kind: str                       # coleta | diario
     channel: str = "email"          # email | telegram
     chat_id: int | None = None
+    freelas: list[Job] = field(default_factory=list)
 
 
 def telegram_chat(p: Recipient) -> int | None:
@@ -85,9 +101,10 @@ def plan(people: list[Recipient], all_jobs: list[Job], new_ids: set[str], today:
         else:
             pool = [j for j in all_jobs if j.active and j.id in new_ids]
         hits = for_profile(pool, p.perfil)
-        if hits:
+        frees = freelas_for(pool, p.perfil)
+        if hits or frees:
             chat = telegram_chat(p) if pr["canal"] == "telegram" and telegram_on else None
-            out.append(Plan(p, hits, pr["frequencia"], "telegram" if chat else "email", chat))
+            out.append(Plan(p, hits, pr["frequencia"], "telegram" if chat else "email", chat, frees))
     return out
 
 
@@ -101,8 +118,8 @@ def covers(people: list[Recipient] | None, email: str) -> bool:
     return False
 
 
-def greeting(p: Recipient, kind: str) -> str:
+def greeting(p: Recipient, kind: str, what: str = "vagas") -> str:
     first = (p.nome or "").split(" ")[0]
     hello = f"Olá, {first}!" if first else "Olá!"
-    when = "Resumo do dia com as vagas" if kind == "diario" else "Chegaram vagas"
+    when = f"Resumo do dia com os {what}" if kind == "diario" and what == "freelas" else         f"Resumo do dia com as {what}" if kind == "diario" else f"Chegaram {what}"
     return f"{hello} {when} que combinam com o seu perfil."

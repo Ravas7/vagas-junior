@@ -103,9 +103,16 @@
     } else {
       state.jobs = state.allJobs.filter((j) => j.padrao !== false);   // sem perfil: o do config.toml
     }
-    // freelas: todos aparecem; o perfil só marca as tecnologias em comum
-    const mine = new Set((p && p.tecnologias) || []);
-    state.freelas = (state.allFreelas || []).map((j) => ({ ...j, comuns: (j.techs || []).filter((t) => mine.has(t)) }));
+    // freelas: o perfil escolhe nível, orçamento e concorrência (P.evaluateFreela = evaluate_freela do Python)
+    state.freelas = (state.allFreelas || []).flatMap((j) => {
+      const r = P.evaluateFreela(j, p || {});
+      return r.accepted ? [{ ...j, score: r.score, reasons: r.reasons, comuns: r.comuns }] : [];
+    });
+    const off = !!(p && p.freelas && p.freelas.ver === false);       // desligou freelas no perfil: some a aba
+    $("#tab-freelas").hidden = off;
+    $('.bottom-nav [data-go="freelas"]').hidden = off;
+    $(".bottom-nav").classList.toggle("no-freelas", off);
+    if (off && state.tab === "freelas") showTab("all");
     const line = $("#profile-line");
     if (p && o) {
       line.replaceChildren("Seu perfil: " + P.summary(p, o) + " · ",

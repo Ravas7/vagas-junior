@@ -750,6 +750,58 @@ def classify_freela(job: Job, cfg: dict) -> bool:
     return True
 
 
+# Preferências de freela no perfil (campo "freelas"). Mesmas chaves e regras em docs/perfil.js.
+FREELA_DEFAULTS = {"ver": True, "nivel": "", "orcamento_min": 0, "propostas_max": 0,
+                   "so_minhas_techs": False, "avisar": False}
+
+
+def freela_prefs(perfil: dict | None) -> dict:
+    """Preferências de freela do perfil, com os padrões e valores estranhos corrigidos."""
+    raw = (perfil or {}).get("freelas") or {}
+    raw = raw if isinstance(raw, dict) else {}
+
+    def num(v):
+        try:
+            return max(0, int(v))
+        except (TypeError, ValueError):
+            return 0
+    return {
+        "ver": raw.get("ver", True) is not False,
+        "nivel": raw.get("nivel") if raw.get("nivel") in ("iniciante", "intermediario") else "",
+        "orcamento_min": num(raw.get("orcamento_min")),
+        "propostas_max": num(raw.get("propostas_max")),
+        "so_minhas_techs": raw.get("so_minhas_techs") is True,
+        "avisar": raw.get("avisar") is True,
+    }
+
+
+def evaluate_freela(job: Job, perfil: dict | None) -> Result:
+    """O freela combina com o perfil? Orçamento ou propostas que o site não informa não tiram o projeto."""
+    fp = freela_prefs(perfil)
+    no = lambda why: Result(False, 0, [why])  # noqa: E731
+    if not fp["ver"]:
+        return no("você não quer ver freelas")
+    if fp["nivel"] == "iniciante" and job.nivel_freela != "iniciante":
+        return no("não é para iniciante")
+    if fp["nivel"] == "intermediario" and job.nivel_freela == "especialista":
+        return no("pede especialista")
+    top = max(job.orcamento_min or 0, job.orcamento_max or 0)
+    if fp["orcamento_min"] and top and not job.por_hora and top < fp["orcamento_min"]:
+        return no(f"orçamento abaixo de USD {fp['orcamento_min']}")
+    if fp["propostas_max"] and job.propostas > fp["propostas_max"]:
+        return no(f"mais de {fp['propostas_max']} propostas")
+    minhas = set((perfil or {}).get("tecnologias") or [])
+    comuns = [t for t in (job.techs or []) if t in minhas]
+    if fp["so_minhas_techs"] and minhas and not comuns:
+        return no("não cita suas tecnologias")
+    reasons = list(job.reasons or [])
+    score = job.score
+    if comuns:
+        score += 10
+        reasons.append("sua tecnologia: " + ", ".join(comuns))
+    return Result(True, score, reasons)
+
+
 def classify(job: Job, cfg: dict) -> bool:
     """Avalia a vaga para guardar no jobs.json. Devolve True se passou na BASE.
 
