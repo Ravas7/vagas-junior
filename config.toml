@@ -18,7 +18,7 @@ subject_prefix = "Ragas"
 
 [avisos]
 # Avisos por pessoa (cada um escolhe em "Meu perfil"). O token do bot fica no Secret TELEGRAM_BOT_TOKEN.
-telegram_bot = ""                 # nome do bot do Telegram, sem @ (vazio = opção Telegram aparece "em breve")
+telegram_bot = "RagasVagasBot"               # nome do bot do Telegram, sem @ (vazio = opção Telegram aparece "em breve")
 hora_resumo = 15                  # a partir desta hora a coleta conta como "da noite" (manda o resumo diário)
 
 [filter]
