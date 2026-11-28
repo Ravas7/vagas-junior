@@ -95,6 +95,7 @@ Rode os testes depois de qualquer mudança em `vagas/` ou `docs/store.js`. Para 
    - Painel instalável no celular (PWA).
    - Página curta sobre quais dados são guardados e como apagar a conta.
 7. Central de notícias do mundo dev (depois de terminar a ideia 6, com plano próprio): notícias que não são de vaga vão para uma central separada; notícias de vaga continuam junto com as vagas.
+8. Freelas de TI (depois do Telegram, com plano próprio): trazer projetos freelancer da área de TI para o painel. Falta decidir se ficam junto das vagas ou numa aba só deles, e testar quais sites dão para coletar (API pública ou endpoint aberto).
 
 ## Firebase (ligado)
 
