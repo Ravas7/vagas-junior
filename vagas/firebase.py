@@ -3,8 +3,9 @@
 O robô entra com uma conta própria (FIREBASE_ROBO_EMAIL e FIREBASE_ROBO_SENHA, nos
 Secrets do GitHub) e lê, pela API REST do Firestore:
 - acesso/{uid}: quem está liberado (status "aprovado");
-- users/{uid}/perfil/atual: o perfil de cada pessoa.
-As regras do Firestore só deixam essa conta LER essas duas coisas (README, passo 9).
+- users/{uid}/perfil/atual: o perfil de cada pessoa;
+- telegram/{uid}: a conversa do Telegram de quem ligou o aviso por lá.
+As regras do Firestore só deixam essa conta ler essas coisas e gravar em telegram/{uid} (README, passo 9).
 
 Projeto e chave da web vêm de docs/firebase-config.js, que já é público.
 """
@@ -16,7 +17,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .http import SourceError, get_json, post_json
+from .http import SourceError, get_json, post_json, send_json
 
 SIGN_IN = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
 FIRESTORE = "https://firestore.googleapis.com/v1/projects/{project}/databases/(default)/documents"
@@ -74,6 +75,17 @@ def decode_fields(fields: dict) -> dict:
     return {k: decode(v) for k, v in (fields or {}).items()}
 
 
+def encode(value) -> dict:
+    """Python -> valor tipado do Firestore REST (só o que o robô grava)."""
+    if isinstance(value, bool):
+        return {"booleanValue": value}
+    if isinstance(value, int):
+        return {"integerValue": str(value)}
+    if value is None:
+        return {"nullValue": None}
+    return {"stringValue": str(value)}
+
+
 class Client:
     """Conversa com o Firestore como a conta do robô."""
 
@@ -124,6 +136,16 @@ class Client:
             if not page:
                 return out
 
+    def set_doc(self, path: str, data: dict) -> None:
+        """Grava (cria ou substitui) um documento."""
+        try:
+            send_json(f"{self.base}/{path}", {"fields": {k: encode(v) for k, v in data.items()}},
+                      "PATCH", headers=self.headers)
+        except SourceError as exc:
+            if str(exc).startswith("HTTP 403"):
+                raise SourceError(f"a regra do Firestore não deixou o robô gravar em '{path}' (README, passo 9).") from None
+            raise
+
     def get_doc(self, path: str) -> dict | None:
         """Um documento (None se não existe)."""
         try:
@@ -133,6 +155,11 @@ class Client:
                 return None
             raise
         return decode_fields(doc.get("fields", {}))
+
+
+def telegram_links(client: Client) -> dict[str, dict]:
+    """uid -> {chat_id, codigo, ...} de quem já ligou o Telegram."""
+    return {uid: data for uid, data in client.list_docs("telegram")}
 
 
 def recipients(client: Client) -> list[Recipient]:

@@ -21,7 +21,7 @@
     configured: false,
     onStatus(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     hasAccess: () => ["admin", "aprovado"].includes(Sync.status.access),
-    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile,
+    init, signIn, signOut, signInEmail, signUpEmail, resetPassword, authMessage, loadProfile, saveProfile, loadTelegram,
     watchRequests, decide,
   };
   window.Sync = Sync;
@@ -259,6 +259,13 @@
     const ref = profileRef();
     if (!ref) return null;
     const snap = await fb.fs.getDoc(ref);
+    return snap.exists() ? snap.data() : null;
+  }
+
+  /* Telegram ligado? O robô grava telegram/{uid} quando a pessoa toca em Começar no bot. */
+  async function loadTelegram() {
+    if (!user || !db) return null;
+    const snap = await fb.fs.getDoc(fb.fs.doc(db, "telegram", user.uid));
     return snap.exists() ? snap.data() : null;
   }
 

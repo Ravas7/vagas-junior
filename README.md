@@ -162,7 +162,7 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
          return logado() && request.auth.token.email == 'SEU_EMAIL'
                 && request.auth.token.email_verified == true;
        }
-       function robo() {          // conta do robô do GitHub: só lê, para mandar os avisos
+       function robo() {          // conta do robô do GitHub: lê perfis e liberados, grava só a conversa do Telegram
          return logado() && request.auth.token.email == 'ROBO_EMAIL';
        }
        function aprovado() {
@@ -176,6 +176,12 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
        }
        match /users/{uid}/perfil/{doc} {
          allow read: if robo();
+       }
+
+       // Telegram: o robô grava a conversa de quem ligou o aviso por lá; a pessoa só vê a dela
+       match /telegram/{uid} {
+         allow read: if robo() || (logado() && request.auth.uid == uid);
+         allow write: if robo();
        }
 
        // pedidos de acesso: a pessoa cria o próprio pedido (pendente); só o admin decide
@@ -197,7 +203,14 @@ A aba **Candidaturas** é um quadro Kanban: Inscrição feita → Dinâmica e te
    1. **Authentication → Usuários → Adicionar usuário**: crie um e-mail só para o robô (pode ser inventado, ex.: `robo@ragas.app`) e uma senha forte.
    2. Nas regras acima, troque `ROBO_EMAIL` por esse e-mail e publique.
    3. No GitHub, **Settings → Secrets and variables → Actions**: crie `FIREBASE_ROBO_EMAIL` e `FIREBASE_ROBO_SENHA`. Para testar no seu computador, ponha as mesmas linhas no `.env`.
-   4. Teste com `python -m vagas avisos`: mostra quem está liberado e quantas vagas combinam com cada perfil. Não envia nada.
+   4. Teste com `python -m vagas avisos`: mostra quem está liberado, por onde cada um recebe e quantas vagas combinam com cada perfil. Não envia aviso de vaga.
+
+   **Aviso pelo Telegram (opcional):** quem escolhe Telegram em Meu perfil recebe por lá; quem não ligou ainda recebe por e-mail.
+   1. No Telegram, fale com **@BotFather**, mande `/newbot`, escolha um nome e um usuário terminado em `bot`. Ele devolve um **token**.
+   2. No GitHub, crie o Secret `TELEGRAM_BOT_TOKEN` com esse token (e, para testar no computador, a mesma linha no `.env`). O token é segredo: nunca no código.
+   3. Em `config.toml`, seção `[avisos]`, ponha `telegram_bot = "usuario_do_bot"` (sem @), rode `python -m vagas perfil` e envie.
+   4. Publique a regra `telegram/{uid}` acima.
+   5. Em Meu perfil, escolha Telegram e toque em **Abrir o Telegram** → **Começar**. A conversa fica ligada na próxima coleta (ou na hora, com `python -m vagas avisos`), e o bot manda "Pronto!".
 5. **Configurações do projeto > Seus apps > Web (`</>`)**: registre um app e copie o objeto `firebaseConfig`. Cole em `docs/firebase-config.js`, no lugar de `null`. Esses valores não são segredos; quem protege os dados são as regras acima.
 6. Faça o commit. Com o Firebase configurado, **o painel pede login antes de abrir**: a tela de entrada aceita Google ou e-mail e senha, tem **Criar conta** e **Esqueci minha senha**. Sem `firebase-config.js` (valor `null`), o painel abre direto, sem login.
 

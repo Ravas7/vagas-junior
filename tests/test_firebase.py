@@ -106,4 +106,4 @@ def test_comando_avisos_lista_quem_recebe(fake, monkeypatch, tmp_path, capsys):
     out = capsys.readouterr().out
     assert "2 pessoas liberadas" in out
     assert "Eu <eu@x.com> | sem perfil (vale o do config.toml) | combinam 1 vaga " in out     # só a júnior (padrão)
-    assert "Amiga <amiga@x.com> | perfil: estagio, pleno | PE | combinam 1 vaga " in out    # só a pleno
+    assert "Amiga <amiga@x.com> | perfil: estagio, pleno | PE | aviso: e-mail, a cada coleta | combinam 1 vaga " in out    # só a pleno

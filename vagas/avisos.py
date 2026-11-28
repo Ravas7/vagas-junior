@@ -1,12 +1,13 @@
-"""Aviso de vagas novas por pessoa (e-mail; Telegram vem depois).
+"""Aviso de vagas novas por pessoa, por e-mail ou Telegram.
 
 Cada pessoa liberada no painel tem um perfil no Firestore. Em cada coleta o robô:
 1. pega as vagas novas (ou, para quem quer resumo diário, as do dia, só na coleta da noite);
 2. passa cada uma pelo perfil da pessoa, com o mesmo filtro do painel (evaluate_profile);
 3. monta um e-mail só com as que combinam. Quem não tem vaga nova que combine não recebe nada.
 
-Preferências ficam no perfil, no campo "aviso": {ativo, canal, frequencia}.
+Preferências ficam no perfil, no campo "aviso": {ativo, canal, frequencia, telegram_codigo}.
 Sem o campo, vale: ligado, por e-mail, a cada coleta.
+Quem escolheu Telegram e ainda não ligou a conversa (ou se o bot estiver fora) recebe por e-mail.
 """
 
 from __future__ import annotations
@@ -54,16 +55,26 @@ class Plan:
     person: Recipient
     jobs: list[Job]
     kind: str                       # coleta | diario
+    channel: str = "email"          # email | telegram
+    chat_id: int | None = None
 
 
-def plan(people: list[Recipient], all_jobs: list[Job], new_ids: set[str], today: str, evening: bool) -> list[Plan]:
-    """Quem recebe o quê nesta coleta (só e-mail por enquanto)."""
+def telegram_chat(p: Recipient) -> int | None:
+    """Conversa do Telegram ligada ao código ATUAL do perfil (trocou o código = precisa ligar de novo)."""
+    link = (p.extra or {}).get("telegram") or {}
+    code = ((p.perfil or {}).get("aviso") or {}).get("telegram_codigo")
+    return link.get("chat_id") if link.get("chat_id") and code and link.get("codigo") == code else None
+
+
+def plan(people: list[Recipient], all_jobs: list[Job], new_ids: set[str], today: str, evening: bool,
+         telegram_on: bool = True) -> list[Plan]:
+    """Quem recebe o quê nesta coleta, e por onde. telegram_on=False: bot fora, todo mundo por e-mail."""
     out = []
     for p in people:
         if p.perfil is None:
             continue                                 # ainda não montou o perfil
         pr = prefs(p.perfil)
-        if not pr["ativo"] or pr["canal"] != "email":
+        if not pr["ativo"]:
             continue
         if pr["frequencia"] == "diario":
             if not evening:
@@ -73,7 +84,8 @@ def plan(people: list[Recipient], all_jobs: list[Job], new_ids: set[str], today:
             pool = [j for j in all_jobs if j.active and j.id in new_ids]
         hits = for_profile(pool, p.perfil)
         if hits:
-            out.append(Plan(p, hits, pr["frequencia"]))
+            chat = telegram_chat(p) if pr["canal"] == "telegram" and telegram_on else None
+            out.append(Plan(p, hits, pr["frequencia"], "telegram" if chat else "email", chat))
     return out
 
 
@@ -83,8 +95,7 @@ def covers(people: list[Recipient] | None, email: str) -> bool:
         return False
     for p in people:
         if p.email.lower() == email.lower() and p.perfil is not None:
-            pr = prefs(p.perfil)
-            return pr["canal"] == "email"
+            return True                  # recebe pelo perfil (e-mail ou Telegram), ou desligou de propósito
     return False
 
 

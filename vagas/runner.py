@@ -10,7 +10,7 @@ import tomllib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from . import avisos, emailer, filters, firebase, storage
+from . import avisos, emailer, filters, firebase, storage, telegram
 from .http import SourceError
 from .models import Job
 from .sources import REGISTRY
@@ -116,7 +116,8 @@ def run(cfg: dict, send_email: bool = True) -> int:
     # --- avisos por pessoa (perfil de cada um no Firebase) ---
     people = load_people()
     user, password, to = emailer.credentials()
-    plans = avisos.plan(people or [], list(jobs.values()), {j.id for j in new}, today, avisos.is_evening(now, cfg))
+    plans = avisos.plan(people or [], list(jobs.values()), {j.id for j in new}, today, avisos.is_evening(now, cfg),
+                        telegram_on=bool(os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()))
     send_avisos(plans, ecfg, cfg, send_email, now)
     if avisos.covers(people, to):
         # o dono já recebe pelo próprio perfil: o e-mail do config.toml não sai (não duplica)
@@ -185,7 +186,9 @@ PROFILE_PATH = "docs/perfil-padrao.json"
 
 
 def profile_json(cfg: dict) -> str:
-    return json.dumps(filters.profile_options(cfg.get("filter", {})), ensure_ascii=False, indent=1) + "\n"
+    opts = filters.profile_options(cfg.get("filter", {}))
+    opts["telegram_bot"] = cfg.get("avisos", {}).get("telegram_bot", "").lstrip("@")   # vazio = Telegram "em breve"
+    return json.dumps(opts, ensure_ascii=False, indent=1) + "\n"
 
 
 def write_profile(cfg: dict, path: str = PROFILE_PATH) -> int:
@@ -198,12 +201,37 @@ def write_profile(cfg: dict, path: str = PROFILE_PATH) -> int:
 def load_people() -> list | None:
     """Pessoas liberadas e perfis, pelo Firebase. None = sem Firebase (vale só o e-mail do config.toml)."""
     try:
-        return firebase.recipients(firebase.Client.login())
+        client = firebase.Client.login()
+        people = firebase.recipients(client)
     except firebase.FirebaseSkipped as exc:
         log(f"Avisos por pessoa desligados: {exc}.")
+        return None
     except SourceError as exc:
         log(f"AVISO: Firebase indisponível, avisos por pessoa ficam para a próxima coleta ({exc})")
-    return None
+        return None
+    load_telegram(client, people)
+    return people
+
+
+def load_telegram(client, people: list) -> None:
+    """Liga as conversas novas do Telegram e anota em cada pessoa (extra["telegram"]). Falha aqui só gera aviso:
+    quem escolheu Telegram e não está ligado recebe por e-mail."""
+    if not any(((p.perfil or {}).get("aviso") or {}).get("canal") == "telegram" for p in people):
+        return
+    try:
+        links = firebase.telegram_links(client)
+    except SourceError as exc:
+        log(f"AVISO: não deu para ler as conversas do Telegram ({exc}); vai por e-mail.")
+        return
+    try:
+        links = telegram.link(client, people, links, telegram.token(), log)
+    except telegram.TelegramSkipped as exc:
+        log(f"Telegram desligado: {exc}.")
+    except SourceError as exc:
+        log(f"AVISO: {exc}")
+    for p in people:
+        if p.uid in links:
+            p.extra["telegram"] = links[p.uid]
 
 
 def _slug(text: str) -> str:
@@ -220,8 +248,24 @@ def send_avisos(plans: list, ecfg: dict, cfg: dict, send_email: bool, now: datet
     if not send_email:
         out = Path("out")
         out.mkdir(exist_ok=True)
+    tok = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     for pl in plans:
         p = pl.person
+        if pl.channel == "telegram":
+            texts = telegram.messages(pl.jobs, avisos.greeting(p, pl.kind), dashboard_url(cfg),
+                                      ecfg.get("max_per_email", 40))
+            if not send_email:
+                name = out / f"aviso_{_slug(p.nome or p.email)}_telegram.txt"
+                name.write_text("\n\n----- (próxima mensagem) -----\n\n".join(texts), encoding="utf-8")
+                log(f"Prévia do Telegram de {p.nome or p.email} salva em {name}")
+                continue
+            try:
+                for t in texts:
+                    telegram.send(tok, pl.chat_id, t)
+                log(f"Aviso pelo Telegram para {p.nome or p.email} ({len(pl.jobs)} itens)")
+                continue
+            except SourceError as exc:
+                log(f"ERRO no Telegram de {p.nome or p.email} ({exc}); vai por e-mail.")
         msg = emailer.build_message(pl.jobs, ecfg, dashboard_url(cfg), user or "voce@exemplo.com", p.email, day,
                                     greeting=avisos.greeting(p, pl.kind), footer=avisos.FOOTER)
         label = f"{p.nome or p.email} ({len(pl.jobs)} itens)"
@@ -263,6 +307,7 @@ def cmd_avisos(cfg: dict, previa: bool = False) -> int:
     except SourceError as exc:
         log(f"ERRO no Firebase: {exc}")
         return 1
+    load_telegram(client, people)          # liga quem tocou em Começar no bot
     jobs = [j for j in storage.load(cfg.get("storage", {}).get("path", "docs/data/jobs.json")).values() if j.active]
     log(f"O robô entrou no Firebase. {len(people)} {'pessoa liberada' if len(people) == 1 else 'pessoas liberadas'}:")
     for r in people:
@@ -271,6 +316,11 @@ def cmd_avisos(cfg: dict, previa: bool = False) -> int:
         perfil = (f"perfil: {', '.join(r.perfil.get('niveis', []))} | {r.perfil.get('estado') or '-'}"
                   if r.perfil else "sem perfil (vale o do config.toml)")
         noticias = len(hits) - vagas
+        pr = avisos.prefs(r.perfil)
+        canal = ("desligado" if not pr["ativo"] else "Telegram" if avisos.telegram_chat(r)
+                 else "e-mail (Telegram ainda não ligado)" if pr["canal"] == "telegram" else "e-mail")
+        if r.perfil:
+            perfil += f" | aviso: {canal}, {'resumo diário' if pr['frequencia'] == 'diario' else 'a cada coleta'}"
         log(f"  {r.nome or '(sem nome)'} <{r.email}> | {perfil} | combinam {vagas} {'vaga' if vagas == 1 else 'vagas'}"
             f" e {noticias} {'notícia' if noticias == 1 else 'notícias'} ativas")
     if previa:
@@ -279,7 +329,9 @@ def cmd_avisos(cfg: dict, previa: bool = False) -> int:
         since = (now - timedelta(days=2)).strftime("%Y-%m-%d")           # hoje e os 2 dias anteriores
         todays = {j.id for j in jobs if (j.first_seen or "") >= since}
         log(f"\nPrévia com as {len(todays)} que chegaram nos últimos 3 dias, como se fossem novas:")
-        send_avisos(avisos.plan(people, jobs, todays, today, evening=True), cfg.get("email", {}), cfg, False, now)
+        send_avisos(avisos.plan(people, jobs, todays, today, evening=True,
+                                telegram_on=bool(os.environ.get("TELEGRAM_BOT_TOKEN", "").strip())),
+                    cfg.get("email", {}), cfg, False, now)
     return 0
 
 

@@ -635,6 +635,11 @@ details.more .why { color: var(--muted); font-size: 13px; }
 .pf-chip input:checked + span { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .pf-chip input:checked + span::before { content: "✓"; width: auto; margin-right: 6px; }
 .pf-chip.is-off { cursor: not-allowed; opacity: .55; }
+.pf-tg { display: grid; gap: 8px; margin-top: 10px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-2); }
+.pf-tg[hidden] { display: none; }
+.pf-tg-status { margin: 0; font-size: 14px; color: var(--muted); }
+.pf-tg-status.is-ok { color: var(--accent); font-weight: 600; }
+.pf-tg-btn { justify-self: start; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; }
 .pf-chip input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pf-check { align-items: flex-start; }
 .pf-check input { margin-top: 3px; flex: none; }

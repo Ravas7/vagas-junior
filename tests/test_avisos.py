@@ -44,11 +44,26 @@ def test_nota_do_aviso_e_a_do_perfil_da_pessoa():
     assert pl.jobs[0].score > 0 and "estágio" in pl.jobs[0].reasons
 
 
-def test_desligado_sem_perfil_ou_telegram_nao_recebe_email():
+def test_desligado_ou_sem_perfil_nao_recebe():
     desligado = Recipient("u3", "a@x.com", "A", {**PADRAO, "aviso": {"ativo": False}})
     sem_perfil = Recipient("u4", "b@x.com", "B", None)
-    telegram = Recipient("u5", "c@x.com", "C", {**PADRAO, "aviso": {"canal": "telegram"}})
-    assert avisos.plan([desligado, sem_perfil, telegram], JOBS, {"g:1"}, TODAY, evening=True) == []
+    assert avisos.plan([desligado, sem_perfil], JOBS, {"g:1"}, TODAY, evening=True) == []
+
+
+def tg(code="ABC12345", link_code="ABC12345", chat=777):
+    extra = {"telegram": {"chat_id": chat, "codigo": link_code}} if link_code else {}
+    return Recipient("u5", "c@x.com", "Caio", {**PADRAO, "aviso": {"canal": "telegram", "telegram_codigo": code}}, extra)
+
+
+def test_telegram_ligado_recebe_pelo_telegram():
+    [pl] = avisos.plan([tg()], JOBS, {"g:1"}, TODAY, evening=False)
+    assert (pl.channel, pl.chat_id) == ("telegram", 777)
+
+
+def test_telegram_nao_ligado_ou_bot_fora_vai_por_email():
+    for p, on in ((tg(link_code=None), True), (tg(link_code="VELHO123"), True), (tg(), False)):
+        [pl] = avisos.plan([p], JOBS, {"g:1"}, TODAY, evening=False, telegram_on=on)
+        assert pl.channel == "email" and pl.chat_id is None
 
 
 def test_resumo_diario_so_a_noite_e_com_tudo_do_dia():
@@ -62,6 +77,7 @@ def test_quem_ja_recebe_pelo_perfil_nao_recebe_o_email_do_config():
     assert avisos.covers([EU], "EU@x.com")
     assert not avisos.covers([EU], "outro@x.com")
     assert not avisos.covers(None, "eu@x.com")
+    assert avisos.covers([Recipient("u1", "eu@x.com", "Eu", {**PADRAO, "aviso": {"canal": "telegram"}})], "eu@x.com")
 
 
 def test_aviso_tem_saudacao_e_rodape():

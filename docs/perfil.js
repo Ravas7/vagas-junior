@@ -30,6 +30,7 @@
       ativo: a.ativo !== false,
       canal: CANAIS.includes(a.canal) ? a.canal : "email",
       frequencia: FREQUENCIAS.includes(a.frequencia) ? a.frequencia : "coleta",
+      telegram_codigo: /^[A-Za-z0-9]{6,32}$/.test(a.telegram_codigo || "") ? a.telegram_codigo : "",
     };
   }
 
@@ -391,18 +392,49 @@
           h("p", { class: "pf-label" }, "Por onde"),
           h("div", { class: "pf-chips" },
             radio("aviso_canal", "email", "E-mail", p.aviso.canal === "email"),
-            radio("aviso_canal", "telegram", "Telegram (em breve)", false, true)),
+            o.telegram_bot ? radio("aviso_canal", "telegram", "Telegram", p.aviso.canal === "telegram")
+              : radio("aviso_canal", "telegram", "Telegram (em breve)", false, true)),
+          o.telegram_bot && telegramBox(p, o),
           h("p", { class: "pf-label" }, "Com que frequência"),
           h("div", { class: "pf-chips" },
             radio("aviso_frequencia", "coleta", "A cada coleta", p.aviso.frequencia === "coleta"),
             radio("aviso_frequencia", "diario", "Resumo diário", p.aviso.frequencia === "diario")),
-          h("p", { class: "pf-hint" }, "A cada coleta: de manhã e à noite, só o que for novo. Resumo diário: um e-mail só, à noite, com as vagas do dia."))),
+          h("p", { class: "pf-hint" }, "A cada coleta: duas vezes por dia, só o que for novo. Resumo diário: um aviso só, no fim do dia, com as vagas do dia."))),
 
       h("p", { class: "gate-msg is-err pf-errors", role: "alert" }),
       h("div", { class: "kb-dialog-actions pf-actions" },
         !firstTime && h("button", { class: "kb-btn", type: "button", onclick: () => dialog.close() }, "Cancelar"),
         h("button", { class: "kb-btn primary", type: "submit" }, "Salvar perfil")));
     return f;
+  }
+
+  /* código que liga a conversa do Telegram a esta conta (o robô procura "/start <código>") */
+  function newCode() {
+    const abc = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    const r = crypto.getRandomValues(new Uint8Array(12));
+    return [...r].map((n) => abc[n % abc.length]).join("");
+  }
+
+  function telegramBox(p, o) {
+    const code = p.aviso.telegram_codigo || newCode();
+    const status = h("p", { class: "pf-tg-status" }, "Conferindo…");
+    const box = h("div", { class: "pf-tg", "data-show": "telegram" },
+      h("input", { type: "hidden", name: "aviso_codigo", value: code }),
+      status,
+      h("a", { class: "kb-btn primary pf-tg-btn", href: `https://t.me/${o.telegram_bot}?start=${code}`, target: "_blank", rel: "noopener",
+        onclick: (e) => { const f = e.currentTarget.closest("form"); setTimeout(() => f.requestSubmit(), 0); } },
+        "Abrir o Telegram"),
+      h("p", { class: "pf-hint pf-tg-hint" }, "No Telegram, toque em Começar. O robô liga a conversa na próxima coleta e manda um “Pronto!”. Até lá, os avisos chegam por e-mail."));
+    Sync.loadTelegram().then((t) => {
+      const ok = t && t.codigo === code;
+      status.textContent = ok ? `✓ Ligado ao Telegram${t.nome_telegram ? " (" + t.nome_telegram + ")" : ""}` : "Ainda não ligado.";
+      status.classList.toggle("is-ok", !!ok);
+      if (ok) {
+        box.querySelector(".pf-tg-btn").textContent = "Abrir a conversa";
+        box.querySelector(".pf-tg-hint").textContent = "Tudo certo: os avisos chegam por lá.";
+      }
+    }).catch(() => { status.textContent = "Ainda não ligado."; });
+    return box;
   }
 
   function read(f) {
@@ -425,6 +457,7 @@
         ativo: on("aviso_ativo"),
         canal: (f.querySelector('input[name="aviso_canal"]:checked') || {}).value || "email",
         frequencia: (f.querySelector('input[name="aviso_frequencia"]:checked') || {}).value || "coleta",
+        telegram_codigo: f.elements.aviso_codigo ? f.elements.aviso_codigo.value : (P.current && P.current.aviso || {}).telegram_codigo || "",
       },
     };
   }
@@ -436,6 +469,7 @@
     showIf('[data-show="presencial"]', f.elements.presencial.checked);
     showIf('[data-show="exterior"]', f.elements.exterior.checked);
     showIf('[data-show="aviso"]', f.elements.aviso_ativo.checked);
+    showIf('[data-show="telegram"]', !!f.querySelector('input[name="aviso_canal"][value="telegram"]:checked:not(:disabled)'));
     showIf('[data-show="area-suporte"]', !!f.querySelector('input[name="areas"][value="suporte"]:checked'));
     showIf('[data-show-uf="BA"]', f.elements.estado.value === "BA");
     f.querySelector(".pf-errors").textContent = "";

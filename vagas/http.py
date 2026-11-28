@@ -16,7 +16,7 @@ class SourceError(Exception):
 
 
 def _fetch(url: str, params: dict | None = None, headers: dict | None = None,
-           body: dict | None = None, timeout: int = 20, retries: int = 2) -> bytes:
+           body: dict | None = None, timeout: int = 20, retries: int = 2, method: str | None = None) -> bytes:
     if params:
         sep = "&" if "?" in url else "?"
         url = url + sep + urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
@@ -25,7 +25,7 @@ def _fetch(url: str, params: dict | None = None, headers: dict | None = None,
     if body is not None:
         data = json.dumps(body).encode("utf-8")
         hdrs["Content-Type"] = "application/json"
-    req = urllib.request.Request(url, data=data, headers=hdrs)   # POST se houver corpo
+    req = urllib.request.Request(url, data=data, headers=hdrs, method=method)   # sem method: POST se houver corpo
     last: Exception | None = None
     for attempt in range(retries + 1):
         try:
@@ -55,6 +55,16 @@ def post_json(url: str, body: dict, headers: dict | None = None,
     raw = _fetch(url, None, headers, body, timeout, retries)
     try:
         return json.loads(raw.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        raise SourceError(f"resposta de {_short(url)} não é JSON") from None
+
+
+def send_json(url: str, body: dict, method: str = "PATCH", headers: dict | None = None,
+              timeout: int = 25, retries: int = 1):
+    """PATCH/PUT com corpo JSON (o robô grava no Firestore)."""
+    raw = _fetch(url, None, headers, body, timeout, retries, method)
+    try:
+        return json.loads(raw.decode("utf-8") or "{}")
     except (json.JSONDecodeError, UnicodeDecodeError):
         raise SourceError(f"resposta de {_short(url)} não é JSON") from None
 

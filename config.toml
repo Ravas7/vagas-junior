@@ -16,6 +16,11 @@ send_when_empty = false           # true = avisa até quando não há vagas nova
 subject_prefix = "Ragas"
 # dashboard_url = "https://SEU_USUARIO.github.io/vagas-junior/"   # no GitHub Actions é montado sozinho
 
+[avisos]
+# Avisos por pessoa (cada um escolhe em "Meu perfil"). O token do bot fica no Secret TELEGRAM_BOT_TOKEN.
+telegram_bot = ""                 # nome do bot do Telegram, sem @ (vazio = opção Telegram aparece "em breve")
+hora_resumo = 15                  # a partir desta hora a coleta conta como "da noite" (manda o resumo diário)
+
 [filter]
 min_score = 40
 max_years = 2                     # pedir mais que isso (sem "júnior" no título) descarta
